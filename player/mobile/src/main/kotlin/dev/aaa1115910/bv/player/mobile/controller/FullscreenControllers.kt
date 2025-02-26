@@ -52,7 +52,8 @@ fun FullscreenControllers(
     onShowResolutionController: () -> Unit,
     onShowSpeedController: () -> Unit,
     onToggleDanmaku: (Boolean) -> Unit,
-    onShowDanmakuController: () -> Unit
+    onShowDanmakuController: () -> Unit,
+    onShowVideoListController: () -> Unit
 ) {
     val context = LocalContext.current
     val videoPlayerSeekData = LocalVideoPlayerSeekData.current
@@ -81,6 +82,7 @@ fun FullscreenControllers(
                 videoPlayerConfigData.currentResolution ?: 6
             ) ?: Resolution.R1080P).getDisplayName(context),
             enabledDanmaku = videoPlayerConfigData.currentDanmakuEnabled,
+            showPartButton = videoPlayerConfigData.availableVideoList.size > 1,
             onPlay = onPlay,
             onPause = onPause,
             onExitFullScreen = onExitFullScreen,
@@ -88,7 +90,8 @@ fun FullscreenControllers(
             onShowResolutionController = onShowResolutionController,
             onShowSpeedController = onShowSpeedController,
             onToggleDanmaku = onToggleDanmaku,
-            onShowDanmakuController = onShowDanmakuController
+            onShowDanmakuController = onShowDanmakuController,
+            onShowVideoListController = onShowVideoListController
         )
     }
 }
@@ -125,6 +128,7 @@ private fun BottomControllers(
     bufferedSeekPosition: Int,
     currentResolutionName: String,
     enabledDanmaku: Boolean,
+    showPartButton: Boolean,
     onPlay: () -> Unit,
     onPause: () -> Unit,
     onExitFullScreen: () -> Unit,
@@ -132,7 +136,8 @@ private fun BottomControllers(
     onShowResolutionController: () -> Unit,
     onShowSpeedController: () -> Unit,
     onToggleDanmaku: (Boolean) -> Unit,
-    onShowDanmakuController: () -> Unit
+    onShowDanmakuController: () -> Unit,
+    onShowVideoListController: () -> Unit
 ) {
     Box(
         modifier = modifier
@@ -209,8 +214,10 @@ private fun BottomControllers(
                         TextButton(onClick = { /*TODO*/ }) {
                             Text(text = "字幕")
                         }
-                        TextButton(onClick = { /*TODO*/ }) {
-                            Text(text = "选集")
+                        if (showPartButton) {
+                            TextButton(onClick = onShowVideoListController) {
+                                Text(text = "选集")
+                            }
                         }
                         TextButton(onClick = onShowSpeedController) {
                             Text(text = "倍速")
@@ -258,7 +265,8 @@ fun FullscreenControllerPreview() {
                 onShowResolutionController = {},
                 onShowSpeedController = {},
                 onToggleDanmaku = {},
-                onShowDanmakuController = {}
+                onShowDanmakuController = {},
+                onShowVideoListController = {}
             )
         }
     }

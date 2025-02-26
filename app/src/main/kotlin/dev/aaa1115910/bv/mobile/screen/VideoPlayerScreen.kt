@@ -83,6 +83,7 @@ import dev.aaa1115910.biliapi.entity.reply.Comment
 import dev.aaa1115910.biliapi.entity.reply.CommentSort
 import dev.aaa1115910.bv.R
 import dev.aaa1115910.bv.mobile.activities.VideoPlayerActivity
+import dev.aaa1115910.bv.mobile.component.player.VideoPlayerPages
 import dev.aaa1115910.bv.mobile.component.reply.CommentItem
 import dev.aaa1115910.bv.mobile.component.reply.ReplySheetScaffold
 import dev.aaa1115910.bv.mobile.component.videocard.RelatedVideoItem
@@ -97,6 +98,9 @@ import dev.aaa1115910.bv.player.entity.LocalVideoPlayerPaymentData
 import dev.aaa1115910.bv.player.entity.LocalVideoPlayerSeekThumbData
 import dev.aaa1115910.bv.player.entity.LocalVideoPlayerVideoInfoData
 import dev.aaa1115910.bv.player.entity.LocalVideoPlayerVideoShotData
+import dev.aaa1115910.bv.player.entity.VideoListPart
+import dev.aaa1115910.bv.player.entity.VideoListPgcEpisode
+import dev.aaa1115910.bv.player.entity.VideoListUgcEpisode
 import dev.aaa1115910.bv.player.entity.VideoPlayerConfigData
 import dev.aaa1115910.bv.player.entity.VideoPlayerDanmakuMasksData
 import dev.aaa1115910.bv.player.entity.VideoPlayerHistoryData
@@ -108,12 +112,14 @@ import dev.aaa1115910.bv.player.entity.VideoPlayerVideoInfoData
 import dev.aaa1115910.bv.player.entity.VideoPlayerVideoShotData
 import dev.aaa1115910.bv.player.mobile.BvPlayer
 import dev.aaa1115910.bv.util.Prefs
+import dev.aaa1115910.bv.util.fInfo
 import dev.aaa1115910.bv.util.formatPubTimeString
 import dev.aaa1115910.bv.util.ifElse
 import dev.aaa1115910.bv.util.swapList
 import dev.aaa1115910.bv.viewmodel.SeasonViewModel
 import dev.aaa1115910.bv.viewmodel.VideoPlayerV3ViewModel
 import dev.aaa1115910.bv.viewmodel.video.VideoDetailViewModel
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
@@ -130,6 +136,7 @@ fun VideoPlayerScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val systemUiController = rememberSystemUiController()
+    val logger = KotlinLogging.logger("VideoPlayerScreen")
 
     var isVideoFullscreen by rememberSaveable { mutableStateOf(false) }
     val forcePortrait =
@@ -322,6 +329,46 @@ fun VideoPlayerScreen(
                             onDanmakuAreaChange = { area ->
                                 playerViewModel.currentDanmakuArea = area
                                 Prefs.defaultDanmakuArea = area
+                            },
+                            onLoadNextVideo = {
+
+                            },
+                            onLoadNewVideo = { videoListItem ->
+                                logger.fInfo { "on load new video: $videoListItem" }
+                                var aid = 0L
+                                var cid = 0L
+                                var epid: Int? = null
+                                var seasonId: Int? = null
+
+                                when (videoListItem) {
+                                    is VideoListPart -> {
+                                        aid = videoListItem.aid
+                                        cid = videoListItem.cid
+                                        epid = videoListItem.epid
+                                        seasonId = videoListItem.seasonId
+                                    }
+
+                                    is VideoListUgcEpisode -> {
+                                        aid = videoListItem.aid
+                                        cid = videoListItem.cid
+                                        epid = videoListItem.epid
+                                        seasonId = videoListItem.seasonId
+                                    }
+
+                                    is VideoListPgcEpisode -> {
+                                        aid = videoListItem.aid
+                                        cid = videoListItem.cid
+                                        epid = videoListItem.epid
+                                        seasonId = videoListItem.seasonId
+                                    }
+                                }
+                                playerViewModel.loadPlayUrl(
+                                    avid = aid,
+                                    cid = cid,
+                                    epid = epid,
+                                    seasonId = seasonId,
+                                    continuePlayNext = true
+                                )
                             }
                         )
                     }
@@ -388,6 +435,34 @@ fun VideoPlayerScreen(
                                                         ?.formatPubTimeString(context) ?: "",
                                                     avid = videoDetailViewModel.videoDetail?.aid
                                                         ?: 0
+                                                )
+                                            }
+                                            item {
+                                                VideoPlayerPages(
+                                                    currentCid = playerViewModel.currentCid,
+                                                    pages = videoDetailViewModel.videoDetail?.pages
+                                                        ?: emptyList(),
+                                                    ugcSeason = videoDetailViewModel.videoDetail?.ugcSeason,
+                                                    pgcSections = seasonVideModel.seasonData?.sections
+                                                        ?: emptyList(),
+                                                    onClickPage = { videoPage ->
+                                                        playerViewModel.loadPlayUrl(
+                                                            avid = videoDetailViewModel.videoDetail!!.aid,
+                                                            cid = videoPage.cid,
+                                                            continuePlayNext = true
+                                                        )
+                                                    },
+                                                    onClickEpisode = { sectionIndex, episode ->
+                                                        videoDetailViewModel.updateUgcSeasonSectionVideoList(
+                                                            sectionIndex
+                                                        )
+                                                        playerViewModel.loadPlayUrl(
+                                                            avid = episode.aid,
+                                                            cid = episode.cid,
+                                                            epid = episode.epid,
+                                                            continuePlayNext = true
+                                                        )
+                                                    }
                                                 )
                                             }
                                             items(
@@ -465,6 +540,35 @@ fun VideoPlayerScreen(
                                     ?.formatPubTimeString(context) ?: "",
                                 avid = videoDetailViewModel.videoDetail?.aid ?: 0,
                                 backgroundColor = MaterialTheme.colorScheme.surfaceContainer
+                            )
+                        }
+                        item {
+                            VideoPlayerPages(
+                                modifier = Modifier
+                                    .padding(vertical = 12.dp)
+                                    .clip(MaterialTheme.shapes.large),
+                                currentCid = playerViewModel.currentCid,
+                                pages = videoDetailViewModel.videoDetail?.pages ?: emptyList(),
+                                ugcSeason = videoDetailViewModel.videoDetail?.ugcSeason,
+                                pgcSections = seasonVideModel.seasonData?.sections ?: emptyList(),
+                                onClickPage = { videoPage ->
+                                    playerViewModel.loadPlayUrl(
+                                        avid = videoDetailViewModel.videoDetail!!.aid,
+                                        cid = videoPage.cid,
+                                        continuePlayNext = true
+                                    )
+                                },
+                                onClickEpisode = { sectionIndex, episode ->
+                                    videoDetailViewModel.updateUgcSeasonSectionVideoList(
+                                        sectionIndex
+                                    )
+                                    playerViewModel.loadPlayUrl(
+                                        avid = episode.aid,
+                                        cid = episode.cid,
+                                        epid = episode.epid,
+                                        continuePlayNext = true
+                                    )
+                                }
                             )
                         }
                         itemsIndexed(

@@ -58,7 +58,7 @@ import java.net.URI
 
 class VideoPlayerV3ViewModel(
     private val videoInfoRepository: VideoInfoRepository,
-    private val videoPlayRepository: VideoPlayRepository
+    private val videoPlayRepository: VideoPlayRepository,
 ) : ViewModel() {
     private val logger = KotlinLogging.logger { }
 
@@ -122,7 +122,7 @@ class VideoPlayerV3ViewModel(
     var playerIconMoving by mutableStateOf("")
 
     private var currentAid = 0L
-    var currentCid = 0L
+    var currentCid by mutableLongStateOf(0L)
     private var currentEpid = 0
 
     private suspend fun releaseDanmakuPlayer() = withContext(Dispatchers.Main) {

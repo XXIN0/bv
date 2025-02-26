@@ -94,6 +94,7 @@ import dev.aaa1115910.bv.activities.video.VideoInfoActivity
 import dev.aaa1115910.bv.component.buttons.SeasonInfoButtons
 import dev.aaa1115910.bv.entity.proxy.ProxyArea
 import dev.aaa1115910.bv.player.entity.VideoListItem
+import dev.aaa1115910.bv.player.entity.VideoListPgcEpisode
 import dev.aaa1115910.bv.repository.VideoInfoRepository
 import dev.aaa1115910.bv.ui.theme.BVTheme
 import dev.aaa1115910.bv.util.ImageSize
@@ -316,7 +317,7 @@ fun SeasonInfoScreen(
                                 )
 
                                 val partVideoList = episodeList.mapIndexed { index, episode ->
-                                    VideoListItem(
+                                    VideoListPgcEpisode(
                                         aid = episode.aid,
                                         cid = episode.cid,
                                         epid = episode.id,
@@ -325,7 +326,6 @@ fun SeasonInfoScreen(
                                             "第 ${episode.title.toInt()} 集"
                                         }.getOrDefault(episode.title) + " " + episode.longTitle,
                                         index = index,
-                                        isEpisode = true
                                     )
                                 }
                                 videoInfoRepository.videoList.clear()
@@ -348,7 +348,7 @@ fun SeasonInfoScreen(
 
                                 val partVideoList =
                                     seasonViewModel.seasonData?.episodes?.mapIndexed { index, episode ->
-                                        VideoListItem(
+                                        VideoListPgcEpisode(
                                             aid = episode.aid,
                                             cid = episode.cid,
                                             epid = episode.id,
@@ -357,7 +357,6 @@ fun SeasonInfoScreen(
                                                 "第 ${episode.title.toInt()} 集"
                                             }.getOrDefault(episode.title) + " " + episode.longTitle,
                                             index = index,
-                                            isEpisode = true
                                         )
                                     } ?: emptyList()
                                 videoInfoRepository.videoList.clear()
@@ -377,7 +376,7 @@ fun SeasonInfoScreen(
                                 onClickVideo(avid, cid, epid, episodeTitle, startTime)
 
                                 val partVideoList = section.episodes.mapIndexed { index, episode ->
-                                    VideoListItem(
+                                    VideoListPgcEpisode(
                                         aid = episode.aid,
                                         cid = episode.cid,
                                         epid = episode.id,
@@ -386,7 +385,6 @@ fun SeasonInfoScreen(
                                             "第 ${episode.title.toInt()} 集"
                                         }.getOrDefault(episode.title) + " " + episode.longTitle,
                                         index = index,
-                                        isEpisode = true
                                     )
                                 }
                                 videoInfoRepository.videoList.clear()
@@ -1116,7 +1114,8 @@ fun SeasonEpisodeRowPreview() {
                 longTitle = "",
                 cover = "",
                 duration = 0,
-                dimension = null
+                dimension = null,
+                pages = emptyList()
             )
         )
     }

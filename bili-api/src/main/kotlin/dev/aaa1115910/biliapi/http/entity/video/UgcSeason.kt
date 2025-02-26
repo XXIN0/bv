@@ -50,7 +50,8 @@ data class UgcSeason(
             val attribute: Int,
             val arc: Arc,
             val page: VideoPage,
-            val bvid: String
+            val bvid: String,
+            val pages: List<VideoPage>
         ) {
             @Serializable
             data class Arc(

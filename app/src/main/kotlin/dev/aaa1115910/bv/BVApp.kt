@@ -187,7 +187,7 @@ val appModule = module {
     viewModel { FollowingSeasonViewModel(get()) }
     viewModel { TagViewModel() }
     viewModel { VideoPlayerV3ViewModel(get(), get()) }
-    viewModel { VideoDetailViewModel(get()) }
+    viewModel { VideoDetailViewModel(get(), get()) }
     viewModel { UserSwitchViewModel(get()) }
     viewModel { PgcIndexViewModel(get()) }
     viewModel { PgcAnimeViewModel(get()) }

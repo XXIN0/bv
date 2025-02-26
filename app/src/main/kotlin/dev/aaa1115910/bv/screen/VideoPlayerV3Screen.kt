@@ -16,6 +16,7 @@ import dev.aaa1115910.bv.player.entity.LocalVideoPlayerPaymentData
 import dev.aaa1115910.bv.player.entity.LocalVideoPlayerSeekThumbData
 import dev.aaa1115910.bv.player.entity.LocalVideoPlayerVideoInfoData
 import dev.aaa1115910.bv.player.entity.LocalVideoPlayerVideoShotData
+import dev.aaa1115910.bv.player.entity.VideoListItemData
 import dev.aaa1115910.bv.player.entity.VideoPlayerConfigData
 import dev.aaa1115910.bv.player.entity.VideoPlayerDanmakuMasksData
 import dev.aaa1115910.bv.player.entity.VideoPlayerHistoryData
@@ -108,11 +109,20 @@ fun VideoPlayerV3Screen(
             onSendHeartbeat = playerViewModel::uploadHistory,
             onClearBackToHistoryData = { playerViewModel.lastPlayed = 0 },
             onLoadNextVideo = {
-                val videoListIndex = playerViewModel.availableVideoList.indexOfFirst {
-                    it.cid == playerViewModel.currentCid
-                }
-                if (videoListIndex + 1 < playerViewModel.availableVideoList.size) {
-                    val nextVideo = playerViewModel.availableVideoList[videoListIndex + 1]
+                val currentIndex = playerViewModel.availableVideoList
+                    .indexOfFirst {
+                        when (it) {
+                            is VideoListItemData -> it.cid == playerViewModel.currentCid
+                            else -> false
+                        }
+                    }
+                if (currentIndex + 1 < playerViewModel.availableVideoList.size) {
+                    val nextVideos = playerViewModel.availableVideoList.subList(
+                        currentIndex + 1,
+                        playerViewModel.availableVideoList.size
+                    )
+                    val nextVideo =
+                        nextVideos.firstOrNull { it is VideoListItemData }!! as VideoListItemData
                     logger.info { "Play next video: $nextVideo" }
                     playerViewModel.partTitle = nextVideo.title
                     playerViewModel.loadPlayUrl(
@@ -126,14 +136,18 @@ fun VideoPlayerV3Screen(
             },
             onExit = { (context as Activity).finish() },
             onLoadNewVideo = { videoListItem ->
-                playerViewModel.partTitle = videoListItem.title
-                playerViewModel.loadPlayUrl(
-                    avid = videoListItem.aid,
-                    cid = videoListItem.cid,
-                    epid = videoListItem.epid,
-                    seasonId = videoListItem.seasonId,
-                    continuePlayNext = true
-                )
+                when (videoListItem) {
+                    is VideoListItemData -> {
+                        playerViewModel.partTitle = videoListItem.title
+                        playerViewModel.loadPlayUrl(
+                            avid = videoListItem.aid,
+                            cid = videoListItem.cid,
+                            epid = videoListItem.epid,
+                            seasonId = videoListItem.seasonId,
+                            continuePlayNext = true
+                        )
+                    }
+                }
             },
             onResolutionChange = { resolutionCode, afterChange ->
                 scope.launch(Dispatchers.Default) {

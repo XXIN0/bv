@@ -8,6 +8,11 @@ import androidx.lifecycle.ViewModel
 import dev.aaa1115910.biliapi.entity.video.VideoDetail
 import dev.aaa1115910.biliapi.repositories.VideoDetailRepository
 import dev.aaa1115910.bv.entity.carddata.VideoCardData
+import dev.aaa1115910.bv.player.entity.VideoListItem
+import dev.aaa1115910.bv.player.entity.VideoListPart
+import dev.aaa1115910.bv.player.entity.VideoListUgcEpisode
+import dev.aaa1115910.bv.player.entity.VideoListUgcEpisodeTitle
+import dev.aaa1115910.bv.repository.VideoInfoRepository
 import dev.aaa1115910.bv.util.Prefs
 import dev.aaa1115910.bv.util.fInfo
 import dev.aaa1115910.bv.util.swapListWithMainContext
@@ -16,7 +21,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class VideoDetailViewModel(
-    private val videoDetailRepository: VideoDetailRepository
+    private val videoDetailRepository: VideoDetailRepository,
+    private val videoInfoRepository: VideoInfoRepository
 ) : ViewModel() {
     private val logger = KotlinLogging.logger { }
     var state by mutableStateOf(VideoInfoState.Loading)
@@ -24,7 +30,7 @@ class VideoDetailViewModel(
 
     var relatedVideos = mutableStateListOf<VideoCardData>()
 
-    suspend fun loadDetail(aid: Long) {
+    suspend fun loadDetail(aid: Long, fromPgcSeason: Boolean = false) {
         logger.fInfo { "Load detail: [avid=$aid, preferApiType=${Prefs.apiType.name}]" }
         state = VideoInfoState.Loading
         runCatching {
@@ -33,6 +39,7 @@ class VideoDetailViewModel(
                 preferApiType = Prefs.apiType
             )
             withContext(Dispatchers.Main) { videoDetail = videoDetailData }
+            if (!fromPgcSeason) updateVideoList(aid)
         }.onFailure {
             state = VideoInfoState.Error
             logger.fInfo { "Load video av$aid failed: ${it.stackTraceToString()}" }
@@ -76,6 +83,61 @@ class VideoDetailViewModel(
         } ?: emptyList()
         relatedVideos.swapListWithMainContext(relateVideoCardDataList)
         logger.fInfo { "Update ${relateVideoCardDataList.size} relate videos" }
+    }
+
+    private fun updateVideoList(aid: Long) {
+        if (videoDetail?.ugcSeason != null) {
+            updateUgcSeasonSectionVideoList(0)
+        } else {
+            val partVideoList =
+                videoDetail!!.pages.mapIndexed { index, videoPage ->
+                    VideoListPart(
+                        aid = aid,
+                        cid = videoPage.cid,
+                        title = videoPage.title,
+                        index = index,
+                    )
+                }
+            videoInfoRepository.videoList.clear()
+            videoInfoRepository.videoList.addAll(partVideoList)
+        }
+    }
+
+    fun updateUgcSeasonSectionVideoList(sectionIndex: Int) {
+        val partVideoList = mutableListOf<VideoListItem>()
+        videoDetail!!.ugcSeason!!.sections[sectionIndex].episodes.mapIndexed { epIndex, episode ->
+            if (episode.pages.size == 1) {
+                episode.pages.mapIndexed { pageInd, videoPage ->
+                    partVideoList.add(
+                        VideoListUgcEpisode(
+                            aid = episode.aid,
+                            cid = videoPage.cid,
+                            title = videoPage.title,
+                            index = epIndex
+                        )
+                    )
+                }
+            } else {
+                partVideoList.add(
+                    VideoListUgcEpisodeTitle(
+                        title = episode.title,
+                        index = epIndex,
+                    )
+                )
+                episode.pages.mapIndexed { pageIndex, videoPage ->
+                    partVideoList.add(
+                        VideoListPart(
+                            aid = episode.aid,
+                            cid = videoPage.cid,
+                            title = videoPage.title,
+                            index = pageIndex,
+                        )
+                    )
+                }
+            }
+        }
+        videoInfoRepository.videoList.clear()
+        videoInfoRepository.videoList.addAll(partVideoList)
     }
 }
 

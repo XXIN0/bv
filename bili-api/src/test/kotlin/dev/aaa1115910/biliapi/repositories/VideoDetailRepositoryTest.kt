@@ -49,7 +49,7 @@ class VideoDetailRepositoryTest {
         runBlocking {
             runCatching {
                 val result = videoDetailRepository.getVideoDetail(
-                    aid = 170001,
+                    aid = 91849600L,
                     preferApiType = ApiType.Web
                 )
                 println(result)
@@ -64,7 +64,7 @@ class VideoDetailRepositoryTest {
         runBlocking {
             runCatching {
                 val result = videoDetailRepository.getVideoDetail(
-                    aid = 170001,
+                    aid = 91849600L,
                     preferApiType = ApiType.App
                 )
                 println(result)

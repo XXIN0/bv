@@ -25,12 +25,16 @@ import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextOverflow
 import dev.aaa1115910.bv.player.entity.DanmakuType
+import dev.aaa1115910.bv.player.entity.LocalVideoPlayerConfigData
 import dev.aaa1115910.bv.player.entity.LocalVideoPlayerSeekData
 import dev.aaa1115910.bv.player.entity.LocalVideoPlayerStateData
+import dev.aaa1115910.bv.player.entity.VideoListItem
 import dev.aaa1115910.bv.player.mobile.controller.menu.DanmakuMenuController
 import dev.aaa1115910.bv.player.mobile.controller.menu.ResolutionMenuController
 import dev.aaa1115910.bv.player.mobile.controller.menu.SpeedMenuController
+import dev.aaa1115910.bv.player.mobile.controller.menu.VideoListMenuController
 import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
 
@@ -51,16 +55,19 @@ fun BvPlayerController(
     onDanmakuOpacityChange: (Float) -> Unit,
     onDanmakuScaleChange: (Float) -> Unit,
     onDanmakuAreaChange: (Float) -> Unit,
+    onPlayNewVideo: (VideoListItem) -> Unit,
     content: @Composable BoxScope.() -> Unit
 ) {
     val context = LocalContext.current
     val videoPlayerSeekData = LocalVideoPlayerSeekData.current
     val videoPlayerStateData = LocalVideoPlayerStateData.current
+    val videoPlayerConfigData = LocalVideoPlayerConfigData.current
     var showBaseUi by remember { mutableStateOf(false) }
 
     var showResolutionController by remember { mutableStateOf(false) }
     var showSpeedController by remember { mutableStateOf(false) }
     var showDanmakuController by remember { mutableStateOf(false) }
+    var showVideoListController by remember { mutableStateOf(false) }
 
     //在手势触发的事件中，直接读取 isPlaying currentTime 参数都只会读取到错误的值，原因未知
     var isPlaying by remember { mutableStateOf(videoPlayerStateData.isPlaying) }
@@ -162,13 +169,15 @@ fun BvPlayerController(
     ) {
         content()
 
-        Text(
-            modifier = Modifier
-                .align(Alignment.Center)
-                .background(Color.Black),
-            text = "${videoPlayerStateData}",
-            color = Color.White
-        )
+        //Text(
+        //    modifier = Modifier
+        //        .align(Alignment.Center)
+        //        .background(Color.Black),
+        //    text = "${videoPlayerConfigData.availableVideoList}",
+        //    color = Color.White,
+        //    maxLines = 3,
+        //    overflow = TextOverflow.Ellipsis
+        //)
 
         SeekMoveTip(
             show = isMovingSeek,
@@ -255,6 +264,10 @@ fun BvPlayerController(
                     onShowDanmakuController = {
                         showBaseUi = false
                         showDanmakuController = true
+                    },
+                    onShowVideoListController = {
+                        showBaseUi = false
+                        showVideoListController = true
                     }
                 )
             } else {
@@ -293,6 +306,12 @@ fun BvPlayerController(
             onDanmakuOpacityChange = onDanmakuOpacityChange,
             onDanmakuScaleChange = onDanmakuScaleChange,
             onDanmakuAreaChange = onDanmakuAreaChange
+        )
+
+        VideoListMenuController(
+            show = showVideoListController,
+            onHideController = { showVideoListController = false },
+            onClickVideoListItem = onPlayNewVideo
         )
     }
 }

@@ -39,6 +39,7 @@ import dev.aaa1115910.bv.player.entity.LocalVideoPlayerSeekData
 import dev.aaa1115910.bv.player.entity.LocalVideoPlayerStateData
 import dev.aaa1115910.bv.player.entity.LocalVideoPlayerVideoInfoData
 import dev.aaa1115910.bv.player.entity.VideoAspectRatio
+import dev.aaa1115910.bv.player.entity.VideoListItem
 import dev.aaa1115910.bv.player.entity.VideoPlayerClockData
 import dev.aaa1115910.bv.player.entity.VideoPlayerDebugInfoData
 import dev.aaa1115910.bv.player.entity.VideoPlayerSeekData
@@ -63,6 +64,8 @@ fun BvPlayer(
     onDanmakuOpacityChange: (Float) -> Unit,
     onDanmakuScaleChange: (Float) -> Unit,
     onDanmakuAreaChange: (Float) -> Unit,
+    onLoadNextVideo: () -> Unit,
+    onLoadNewVideo: (VideoListItem) -> Unit,
     videoPlayer: AbstractVideoPlayer,
     danmakuPlayer: DanmakuPlayer?
 ) {
@@ -228,7 +231,7 @@ fun BvPlayer(
             isPlaying = false
             //if (!Prefs.incognitoMode) sendHeartbeat()
 
-            //onLoadNextVideo()
+            onLoadNextVideo()
         }
 
         override fun onIdle() {
@@ -326,7 +329,11 @@ fun BvPlayer(
                 onDanmakuScaleChange(scale)
                 updateDanmakuConfig()
             },
-            onDanmakuAreaChange = onDanmakuAreaChange
+            onDanmakuAreaChange = onDanmakuAreaChange,
+            onPlayNewVideo = {
+                //if (!Prefs.incognitoMode) sendHeartbeat()
+                onLoadNewVideo(it)
+            }
         ) {
             BvVideoPlayer(
                 modifier = Modifier
