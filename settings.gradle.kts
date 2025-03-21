@@ -28,6 +28,9 @@ dependencyResolutionManagement {
 }
 rootProject.name = "BV"
 include(":app")
+include(":app:mobile")
+include(":app:shared")
+include(":app:tv")
 include(":bili-api")
 include(":bili-subtitle")
 include(":libs:av1Decoder")
