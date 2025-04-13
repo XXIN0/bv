@@ -88,7 +88,6 @@ import dev.aaa1115910.bv.mobile.component.reply.CommentItem
 import dev.aaa1115910.bv.mobile.component.reply.ReplySheetScaffold
 import dev.aaa1115910.bv.mobile.component.videocard.RelatedVideoItem
 import dev.aaa1115910.bv.mobile.theme.BVMobileTheme
-import dev.aaa1115910.bv.viewmodel.CommentViewModel
 import dev.aaa1115910.bv.player.entity.LocalVideoPlayerConfigData
 import dev.aaa1115910.bv.player.entity.LocalVideoPlayerDanmakuMasksData
 import dev.aaa1115910.bv.player.entity.LocalVideoPlayerHistoryData
@@ -116,6 +115,7 @@ import dev.aaa1115910.bv.util.fInfo
 import dev.aaa1115910.bv.util.formatPubTimeString
 import dev.aaa1115910.bv.util.ifElse
 import dev.aaa1115910.bv.util.swapList
+import dev.aaa1115910.bv.viewmodel.CommentViewModel
 import dev.aaa1115910.bv.viewmodel.SeasonViewModel
 import dev.aaa1115910.bv.viewmodel.VideoPlayerV3ViewModel
 import dev.aaa1115910.bv.viewmodel.video.VideoDetailViewModel
@@ -310,6 +310,10 @@ fun VideoPlayerScreen(
                                     playerViewModel.currentQuality = code
                                     playerViewModel.playQuality(code)
                                 }
+                            },
+                            onChangeSpeed = { speed ->
+                                playerViewModel.currentPlaySpeed = speed
+                                Prefs.defaultPlaySpeed = speed
                             },
                             onToggleDanmaku = { enabled ->
                                 playerViewModel.currentDanmakuEnabled = enabled

@@ -7,13 +7,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.FullscreenExit
+import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Text
@@ -53,7 +54,8 @@ fun FullscreenControllers(
     onShowSpeedController: () -> Unit,
     onToggleDanmaku: (Boolean) -> Unit,
     onShowDanmakuController: () -> Unit,
-    onShowVideoListController: () -> Unit
+    onShowVideoListController: () -> Unit,
+    onOpenMoreMenu: () -> Unit
 ) {
     val context = LocalContext.current
     val videoPlayerSeekData = LocalVideoPlayerSeekData.current
@@ -67,7 +69,8 @@ fun FullscreenControllers(
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .fillMaxWidth()
-                .noRippleClickable { }
+                .noRippleClickable { },
+            onOpenMoreMenu = onOpenMoreMenu
         )
         BottomControllers(
             modifier = Modifier
@@ -98,15 +101,17 @@ fun FullscreenControllers(
 
 @Composable
 private fun TopControllers(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onOpenMoreMenu: () -> Unit
 ) {
     Box(
         modifier = modifier
             .background(Color.Black.copy(alpha = 0.6f))
     ) {
         Row(
-            modifier = Modifier.height(60.dp),
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
                 modifier = Modifier.padding(start = 24.dp),
@@ -115,6 +120,14 @@ private fun TopControllers(
                 overflow = TextOverflow.Ellipsis,
                 color = Color.White
             )
+            IconButton(
+                onClick = onOpenMoreMenu,
+                colors = IconButtonDefaults.iconButtonColors(
+                    contentColor = Color.White
+                )
+            ) {
+                Icon(imageVector = Icons.Rounded.MoreVert, contentDescription = null)
+            }
         }
     }
 }
@@ -146,6 +159,7 @@ private fun BottomControllers(
         Column {
             ConstraintLayout(
                 modifier = Modifier
+                    .padding(top = 8.dp)
             ) {
                 val (positionTimeText, seekSlider, totalTimeText) = createRefs()
 
@@ -266,7 +280,8 @@ fun FullscreenControllerPreview() {
                 onShowSpeedController = {},
                 onToggleDanmaku = {},
                 onShowDanmakuController = {},
-                onShowVideoListController = {}
+                onShowVideoListController = {},
+                onOpenMoreMenu = {}
             )
         }
     }

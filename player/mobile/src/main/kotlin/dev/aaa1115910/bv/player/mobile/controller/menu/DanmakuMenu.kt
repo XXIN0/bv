@@ -1,90 +1,93 @@
 package dev.aaa1115910.bv.player.mobile.controller.menu
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandHorizontally
-import androidx.compose.animation.shrinkHorizontally
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CornerSize
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.aaa1115910.bv.player.entity.DanmakuType
 import dev.aaa1115910.bv.player.entity.LocalVideoPlayerConfigData
-import dev.aaa1115910.bv.player.mobile.noRippleClickable
-import dev.aaa1115910.bv.util.ifElse
+import dev.aaa1115910.bv.player.mobile.MaterialDarkTheme
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun DanmakuMenu(
+fun DanmakuMenu(
     modifier: Modifier = Modifier,
-    enabledDanmakuTypes: List<DanmakuType>,
-    danmakuScale: Float,
-    danmakuOpacity: Float,
-    danmakuArea: Float,
     onEnabledDanmakuTypeChange: (List<DanmakuType>) -> Unit,
     onDanmakuScaleChange: (Float) -> Unit,
     onDanmakuOpacityChange: (Float) -> Unit,
-    onDanmakuAreaChange: (Float) -> Unit
+    onDanmakuAreaChange: (Float) -> Unit,
+    onClose: () -> Unit
 ) {
-    Surface(
-        modifier = modifier.noRippleClickable { },
-        color = Color.Black.copy(alpha = 0.6f),
-        shape = MaterialTheme.shapes.medium.copy(
-            topEnd = CornerSize(0.dp),
-            bottomEnd = CornerSize(0.dp)
-        )
-    ) {
-        Box(
-            modifier = Modifier.fillMaxHeight(),
-            contentAlignment = Alignment.Center
+    val videoPlayerConfigData = LocalVideoPlayerConfigData.current
+
+    Scaffold(
+        modifier = modifier,
+        topBar = {
+            TopAppBar(
+                title = { Text(text = "弹幕设置") },
+                actions = {
+                    IconButton(onClick = onClose) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = null
+                        )
+                    }
+                }
+            )
+        }
+    ) { innerPadding ->
+        LazyColumn(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize(),
+            contentPadding = PaddingValues(vertical = 12.dp, horizontal = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            LazyColumn(
-                modifier = Modifier.width(300.dp),
-                contentPadding = PaddingValues(horizontal = 24.dp, vertical = 32.dp)
-            ) {
-                item {
-                    EnabledDanmakuType(
-                        enabledDanmakuTypes = enabledDanmakuTypes,
-                        onEnabledDanmakuTypeChange = onEnabledDanmakuTypeChange
-                    )
-                }
-                item {
-                    DanmakuOpacity(
-                        danmakuOpacity = danmakuOpacity,
-                        onDanmakuOpacityChange = onDanmakuOpacityChange
-                    )
-                }
-                item {
-                    DanmakuArea(
-                        danmakuArea = danmakuArea,
-                        onDanmakuAreaChange = onDanmakuAreaChange
-                    )
-                }
-                item {
-                    DanmakuScale(
-                        danmakuScale = danmakuScale,
-                        onDanmakuScaleChange = onDanmakuScaleChange
-                    )
-                }
+            item {
+                EnabledDanmakuType(
+                    enabledDanmakuTypes = videoPlayerConfigData.currentDanmakuEnabledList,
+                    onEnabledDanmakuTypeChange = onEnabledDanmakuTypeChange
+                )
+            }
+            item {
+                DanmakuOpacity(
+                    danmakuOpacity = videoPlayerConfigData.currentDanmakuOpacity,
+                    onDanmakuOpacityChange = onDanmakuOpacityChange
+                )
+            }
+            item {
+                DanmakuArea(
+                    danmakuArea = videoPlayerConfigData.currentDanmakuArea,
+                    onDanmakuAreaChange = onDanmakuAreaChange
+                )
+            }
+            item {
+                DanmakuScale(
+                    danmakuScale = videoPlayerConfigData.currentDanmakuScale,
+                    onDanmakuScaleChange = onDanmakuScaleChange
+                )
             }
         }
     }
@@ -115,9 +118,13 @@ private fun EnabledDanmakuType(
     ) {
         Text(
             text = "屏蔽类型",
-            color = Color.White
+            style = MaterialTheme.typography.titleSmall
         )
-        Row {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceAround
+        ) {
             EnabledDanmakuTypeButton(
                 danmakuType = DanmakuType.Top,
                 selected = !enabledDanmakuTypes.contains(DanmakuType.Top),
@@ -144,16 +151,14 @@ private fun EnabledDanmakuTypeButton(
     selected: Boolean,
     onEnabledStateChange: (Boolean) -> Unit
 ) {
-    val colors = ButtonDefaults.textButtonColors(
-        contentColor = if (selected) MaterialTheme.colorScheme.primary else Color.White
-    )
-    TextButton(
+    val context = LocalContext.current
+
+    FilterChip(
         modifier = modifier,
-        colors = colors,
+        label = { Text(text = danmakuType.getDisplayName(context).replace("弹幕","")) },
+        selected = selected,
         onClick = { onEnabledStateChange(!selected) }
-    ) {
-        Text(text = danmakuType.name)
-    }
+    )
 }
 
 @Composable
@@ -172,11 +177,11 @@ private fun DanmakuOpacity(
         ) {
             Text(
                 text = "不透明度",
-                color = Color.White
+                style = MaterialTheme.typography.titleSmall
             )
             Text(
                 text = "${(danmakuOpacity * 100).toInt()}%",
-                color = Color.White
+                style = MaterialTheme.typography.titleSmall
             )
         }
 
@@ -200,11 +205,11 @@ private fun DanmakuArea(
         ) {
             Text(
                 text = "显示区域",
-                color = Color.White
+                style = MaterialTheme.typography.titleSmall
             )
             Text(
                 text = "${(danmakuArea * 100).toInt()}%",
-                color = Color.White
+                style = MaterialTheme.typography.titleSmall
             )
         }
 
@@ -228,11 +233,11 @@ private fun DanmakuScale(
         ) {
             Text(
                 text = "字体缩放",
-                color = Color.White
+                style = MaterialTheme.typography.titleSmall
             )
             Text(
                 text = "${(danmakuScale * 100).toInt()}%",
-                color = Color.White
+                style = MaterialTheme.typography.titleSmall
             )
         }
 
@@ -244,60 +249,16 @@ private fun DanmakuScale(
     }
 }
 
-@Composable
-fun DanmakuMenuController(
-    modifier: Modifier = Modifier,
-    show: Boolean,
-    onHideController: () -> Unit = {},
-    onEnabledDanmakuTypesChange: (List<DanmakuType>) -> Unit,
-    onDanmakuScaleChange: (Float) -> Unit,
-    onDanmakuOpacityChange: (Float) -> Unit,
-    onDanmakuAreaChange: (Float) -> Unit
-) {
-    val videoPlayerConfigData = LocalVideoPlayerConfigData.current
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .ifElse(show, Modifier.pointerInput(Unit) {
-                detectTapGestures(
-                    onTap = { if (show) onHideController() }
-                )
-            }),
-        contentAlignment = Alignment.CenterEnd
-    ) {
-        AnimatedVisibility(
-            visible = show,
-            enter = expandHorizontally(),
-            exit = shrinkHorizontally()
-        ) {
-            DanmakuMenu(
-                modifier = Modifier,
-                enabledDanmakuTypes = videoPlayerConfigData.currentDanmakuEnabledList,
-                danmakuScale = videoPlayerConfigData.currentDanmakuScale,
-                danmakuOpacity = videoPlayerConfigData.currentDanmakuOpacity,
-                danmakuArea = videoPlayerConfigData.currentDanmakuArea,
-                onEnabledDanmakuTypeChange = onEnabledDanmakuTypesChange,
-                onDanmakuScaleChange = onDanmakuScaleChange,
-                onDanmakuOpacityChange = onDanmakuOpacityChange,
-                onDanmakuAreaChange = onDanmakuAreaChange
-            )
-        }
-    }
-}
-
-@Preview
+@Preview(device = "spec:width=300dp,height=400dp,dpi=440")
 @Composable
 private fun ResolutionMenuPreview() {
-    MaterialTheme {
+    MaterialDarkTheme {
         DanmakuMenu(
-            enabledDanmakuTypes = listOf(DanmakuType.Bottom),
-            danmakuScale = 1f,
-            danmakuOpacity = 1f,
-            danmakuArea = 1f,
             onEnabledDanmakuTypeChange = {},
             onDanmakuScaleChange = {},
             onDanmakuOpacityChange = {},
-            onDanmakuAreaChange = {}
+            onDanmakuAreaChange = {},
+            onClose = {}
         )
     }
 }
@@ -305,43 +266,51 @@ private fun ResolutionMenuPreview() {
 @Preview
 @Composable
 private fun EnabledDanmakuTypePreview() {
-    MaterialTheme {
-        EnabledDanmakuType(
-            enabledDanmakuTypes = listOf(DanmakuType.Bottom),
-            onEnabledDanmakuTypeChange = {}
-        )
+    MaterialDarkTheme {
+        Surface {
+            EnabledDanmakuType(
+                enabledDanmakuTypes = listOf(DanmakuType.Bottom),
+                onEnabledDanmakuTypeChange = {}
+            )
+        }
     }
 }
 
 @Preview
 @Composable
 private fun DanmakuOpacityPreview() {
-    MaterialTheme {
-        DanmakuOpacity(
-            danmakuOpacity = 0.6f,
-            onDanmakuOpacityChange = {}
-        )
+    MaterialDarkTheme {
+        Surface {
+            DanmakuOpacity(
+                danmakuOpacity = 0.6f,
+                onDanmakuOpacityChange = {}
+            )
+        }
     }
 }
 
 @Preview
 @Composable
 private fun DanmakuAreaPreview() {
-    MaterialTheme {
-        DanmakuArea(
-            danmakuArea = 0.6f,
-            onDanmakuAreaChange = {}
-        )
+    MaterialDarkTheme {
+        Surface {
+            DanmakuArea(
+                danmakuArea = 0.6f,
+                onDanmakuAreaChange = {}
+            )
+        }
     }
 }
 
 @Preview
 @Composable
 private fun DanmakuScalePreview() {
-    MaterialTheme {
-        DanmakuScale(
-            danmakuScale = 1f,
-            onDanmakuScaleChange = {}
-        )
+    MaterialDarkTheme {
+        Surface {
+            DanmakuScale(
+                danmakuScale = 1f,
+                onDanmakuScaleChange = {}
+            )
+        }
     }
 }

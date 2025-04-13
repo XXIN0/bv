@@ -3,38 +3,65 @@ package dev.aaa1115910.bv.player.mobile.controller
 import android.app.Activity
 import android.content.Context
 import android.media.AudioManager
+import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.provider.Settings
 import android.util.Log
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.shape.CornerSize
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.max
 import dev.aaa1115910.bv.player.entity.DanmakuType
 import dev.aaa1115910.bv.player.entity.LocalVideoPlayerConfigData
 import dev.aaa1115910.bv.player.entity.LocalVideoPlayerSeekData
 import dev.aaa1115910.bv.player.entity.LocalVideoPlayerStateData
+import dev.aaa1115910.bv.player.entity.Resolution
 import dev.aaa1115910.bv.player.entity.VideoListItem
-import dev.aaa1115910.bv.player.mobile.controller.menu.DanmakuMenuController
-import dev.aaa1115910.bv.player.mobile.controller.menu.ResolutionMenuController
-import dev.aaa1115910.bv.player.mobile.controller.menu.SpeedMenuController
-import dev.aaa1115910.bv.player.mobile.controller.menu.VideoListMenuController
+import dev.aaa1115910.bv.player.entity.VideoPlayerConfigData
+import dev.aaa1115910.bv.player.entity.VideoPlayerSeekData
+import dev.aaa1115910.bv.player.entity.VideoPlayerStateData
+import dev.aaa1115910.bv.player.mobile.controller.menu.DanmakuMenu
+import dev.aaa1115910.bv.player.mobile.controller.menu.ResolutionMenu
+import dev.aaa1115910.bv.player.mobile.controller.menu.SpeedMenu
+import dev.aaa1115910.bv.player.mobile.controller.menu.VideoListMenu
 import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
 
@@ -59,15 +86,163 @@ fun BvPlayerController(
     content: @Composable BoxScope.() -> Unit
 ) {
     val context = LocalContext.current
+    val density = LocalDensity.current
+    val view = LocalView.current
+
+    //TODO 临时解决方案，应该根据手机垂直方向来屏幕宽度
+    //val screenHeight = with(density) { context.resources.displayMetrics.heightPixels.toDp() }
+    val screenWidth = with(density) { context.resources.displayMetrics.widthPixels.toDp() }
+    val screenHeight = with(density) { context.resources.displayMetrics.heightPixels.toDp() }
+
+    var isMenuOpen by remember { mutableStateOf(false) }
+    val videoContentWidth by animateFloatAsState(
+        targetValue = if (isMenuOpen) 0.7f else 1f
+    )
+    val settingsContentOffset by remember(screenHeight, screenWidth) {
+        derivedStateOf {
+            // 不知为何在预览时获取到的宽度有问题
+            if (view.isInEditMode) max(screenWidth, screenHeight) * ((videoContentWidth) - 0.7f)
+            else screenWidth * (videoContentWidth - 0.7f)
+        }
+    }
+    var menuType by remember { mutableStateOf(MenuType.None) }
+
+    val openMenu: (menu: MenuType) -> Unit = { menu ->
+        menuType = menu
+        isMenuOpen = true
+    }
+
+    LaunchedEffect(isFullScreen) {
+        if (!isFullScreen) isMenuOpen = false
+    }
+
+    Box(
+        modifier = modifier.fillMaxSize()
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxHeight()
+                .fillMaxWidth(videoContentWidth)
+        ) {
+            BvPlayerControllerVideoContent(
+                modifier = Modifier.fillMaxSize(),
+                isFullScreen = isFullScreen,
+                onEnterFullScreen = onEnterFullScreen,
+                onExitFullScreen = onExitFullScreen,
+                onBack = onBack,
+                onPlay = onPlay,
+                onPause = onPause,
+                onSeekToPosition = onSeekToPosition,
+                onChangeSpeed = onChangeSpeed,
+                onToggleDanmaku = onToggleDanmaku,
+                onOpenMoreMenu = { openMenu(MenuType.More) },
+                onOpenSpeedMenu = { openMenu(MenuType.Speed) },
+                onOpenResolutionMenu = { openMenu(MenuType.Resolution) },
+                onOpenDanmakuMenu = { openMenu(MenuType.Danmaku) },
+                onOpenListMenu = { openMenu(MenuType.List) }
+            ) {
+                Box(
+                    modifier = Modifier.clip(RoundedCornerShape(0.dp))
+                ) {
+                    content()
+                }
+            }
+        }
+
+        Row(
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .fillMaxHeight()
+                .fillMaxWidth(0.3f)
+                .offset {
+                    IntOffset(
+                        x = with(density) { settingsContentOffset.roundToPx() },
+                        y = 0
+                    )
+                }
+                .background(Color.Black)
+        ) {
+            BvPlayerControllerSettingsContent(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                when (menuType) {
+                    MenuType.None -> {
+
+                    }
+
+                    MenuType.Speed -> {
+                        SpeedMenu(
+                            onClickSpeed = onChangeSpeed,
+                            onClose = { isMenuOpen = false }
+                        )
+                    }
+
+                    MenuType.Resolution -> {
+                        ResolutionMenu(
+                            onClickResolution = onChangeResolution,
+                            onClose = { isMenuOpen = false }
+                        )
+                    }
+
+                    MenuType.Danmaku -> {
+                        DanmakuMenu(
+                            onEnabledDanmakuTypeChange = onEnabledDanmakuTypesChange,
+                            onDanmakuScaleChange = onDanmakuScaleChange,
+                            onDanmakuOpacityChange = onDanmakuOpacityChange,
+                            onDanmakuAreaChange = onDanmakuAreaChange,
+                            onClose = { isMenuOpen = false }
+                        )
+                    }
+
+                    MenuType.List -> {
+                        VideoListMenu(
+                            onClickVideoListItem = onPlayNewVideo,
+                            onClose = { isMenuOpen = false }
+                        )
+                    }
+
+                    MenuType.Subtitle -> {
+
+                    }
+
+                    MenuType.More -> {
+
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+private enum class MenuType {
+    None, Speed, Resolution, Danmaku, List, Subtitle, More
+}
+
+@Composable
+fun BvPlayerControllerVideoContent(
+    modifier: Modifier = Modifier,
+    isFullScreen: Boolean,
+    onEnterFullScreen: () -> Unit,
+    onExitFullScreen: () -> Unit,
+    onBack: () -> Unit,
+    onPlay: () -> Unit,
+    onPause: () -> Unit,
+    onSeekToPosition: (Long) -> Unit,
+    onChangeSpeed: (Float) -> Unit,
+    onToggleDanmaku: (Boolean) -> Unit,
+    onOpenMoreMenu: () -> Unit,
+    onOpenSpeedMenu: () -> Unit,
+    onOpenResolutionMenu: () -> Unit,
+    onOpenDanmakuMenu: () -> Unit,
+    onOpenListMenu: () -> Unit,
+    content: @Composable BoxScope.() -> Unit
+) {
+    val context = LocalContext.current
     val videoPlayerSeekData = LocalVideoPlayerSeekData.current
     val videoPlayerStateData = LocalVideoPlayerStateData.current
     val videoPlayerConfigData = LocalVideoPlayerConfigData.current
     var showBaseUi by remember { mutableStateOf(false) }
-
-    var showResolutionController by remember { mutableStateOf(false) }
-    var showSpeedController by remember { mutableStateOf(false) }
-    var showDanmakuController by remember { mutableStateOf(false) }
-    var showVideoListController by remember { mutableStateOf(false) }
 
     //在手势触发的事件中，直接读取 isPlaying currentTime 参数都只会读取到错误的值，原因未知
     var isPlaying by remember { mutableStateOf(videoPlayerStateData.isPlaying) }
@@ -75,10 +250,11 @@ fun BvPlayerController(
     var currentTime by remember { mutableStateOf(videoPlayerSeekData.position) }
     LaunchedEffect(videoPlayerSeekData.position) { currentTime = videoPlayerSeekData.position }
 
-
+    var is2xPlaying by remember { mutableStateOf(false) }
     var isMovingSeek by remember { mutableStateOf(false) }
     var moveStartTime by remember { mutableStateOf(0L) }
     var moveMs by remember { mutableStateOf(0L) }
+    var moveStartInSafetyArea by remember { mutableStateOf(false) }
 
     var isMovingBrightness by remember { mutableStateOf(false) }
     var movedBrightness by remember { mutableStateOf(false) }
@@ -91,17 +267,23 @@ fun BvPlayerController(
 
     val onTap: () -> Unit = {
         Log.i("BvPlayerController", "Screen tap")
-        if (showResolutionController) {
-            showResolutionController = false
-        } else if (showSpeedController) {
-            showSpeedController = false
-        } else {
-            showBaseUi = !showBaseUi
-        }
+        if (!is2xPlaying) showBaseUi = !showBaseUi
     }
 
     val onLongPress: () -> Unit = {
         Log.i("BvPlayerController", "Screen long press")
+        is2xPlaying = true
+        onChangeSpeed(2f)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val vibrator = context.getSystemService(Vibrator::class.java)
+            vibrator.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_TICK))
+        }
+    }
+
+    val onLongPressEnd: () -> Unit = {
+        Log.i("BvPlayerController", "Screen long press end")
+        is2xPlaying = false
+        onChangeSpeed(1f)
     }
 
     val onDoubleTap: () -> Unit = {
@@ -163,21 +345,15 @@ fun BvPlayerController(
         if (isMovingSeek) moveStartTime = videoPlayerSeekData.position
     }
 
+    LaunchedEffect(is2xPlaying) {
+        if (is2xPlaying) showBaseUi = false
+    }
+
     Box(
         modifier = modifier
             .background(Color.Black)
     ) {
         content()
-
-        //Text(
-        //    modifier = Modifier
-        //        .align(Alignment.Center)
-        //        .background(Color.Black),
-        //    text = "${videoPlayerConfigData.availableVideoList}",
-        //    color = Color.White,
-        //    maxLines = 3,
-        //    overflow = TextOverflow.Ellipsis
-        //)
 
         SeekMoveTip(
             show = isMovingSeek,
@@ -187,6 +363,7 @@ fun BvPlayerController(
         )
         BrightnessTip(show = isMovingBrightness, progress = currentBrightnessProgress)
         VolumeTip(show = isMovingVolume, progress = currentVolumeProgress)
+        QuickDoubleSpeedPlaybackTip(show = is2xPlaying)
 
         Row(
             modifier = Modifier.fillMaxSize()
@@ -198,9 +375,20 @@ fun BvPlayerController(
                     .detectTapAndDragGestures(
                         onTap = onTap,
                         onLongPress = onLongPress,
+                        onLongPressEnd = onLongPressEnd,
                         onDoubleTap = onDoubleTap,
                         onVerticalDrag = onMovingBrightness,
-                        onHorizontalDrag = onHorizontalDrag,
+                        onHorizontalDrag = { move, inLeftSafetyArea, _ ->
+                            if (inLeftSafetyArea) {
+                                moveStartInSafetyArea = true
+                                Log.i(
+                                    "BvPlayerController",
+                                    "Left screen horizon drag start in safety area, ignore it"
+                                )
+                                return@detectTapAndDragGestures
+                            }
+                            onHorizontalDrag(move)
+                        },
                         onDragEnd = { verticalMove, horizontalMove ->
                             Log.i(
                                 "BvPlayerController",
@@ -210,6 +398,10 @@ fun BvPlayerController(
                                 isMovingBrightness = false
                             } else {
                                 isMovingSeek = false
+                                if (moveStartInSafetyArea) {
+                                    moveStartInSafetyArea = false
+                                    return@detectTapAndDragGestures
+                                }
                                 val seekMoveMs = horizontalMove.toLong() * 50
                                 onSeekToPosition(moveStartTime + seekMoveMs)
                                 Log.i("BvPlayerController", "Seek move $seekMoveMs")
@@ -224,9 +416,20 @@ fun BvPlayerController(
                     .detectTapAndDragGestures(
                         onTap = onTap,
                         onLongPress = onLongPress,
+                        onLongPressEnd = onLongPressEnd,
                         onDoubleTap = onDoubleTap,
                         onVerticalDrag = onMovingVolume,
-                        onHorizontalDrag = onHorizontalDrag,
+                        onHorizontalDrag = { move, _, inRightSafetyArea ->
+                            if (inRightSafetyArea) {
+                                moveStartInSafetyArea = true
+                                Log.i(
+                                    "BvPlayerController",
+                                    "Right screen horizon drag start in safety area, ignore it"
+                                )
+                                return@detectTapAndDragGestures
+                            }
+                            onHorizontalDrag(move)
+                        },
                         onDragEnd = { verticalMove, horizontalMove ->
                             Log.i(
                                 "BvPlayerController",
@@ -236,6 +439,10 @@ fun BvPlayerController(
                                 isMovingVolume = false
                             } else {
                                 isMovingSeek = false
+                                if (moveStartInSafetyArea) {
+                                    moveStartInSafetyArea = false
+                                    return@detectTapAndDragGestures
+                                }
                                 val seekMoveMs = horizontalMove.toLong() * 50
                                 onSeekToPosition(moveStartTime + seekMoveMs)
                                 Log.i("BvPlayerController", "Seek move $seekMoveMs")
@@ -254,21 +461,22 @@ fun BvPlayerController(
                     onSeekToPosition = onSeekToPosition,
                     onShowResolutionController = {
                         showBaseUi = false
-                        showResolutionController = true
+                        onOpenResolutionMenu()
                     },
                     onShowSpeedController = {
                         showBaseUi = false
-                        showSpeedController = true
+                        onOpenSpeedMenu()
                     },
                     onToggleDanmaku = onToggleDanmaku,
                     onShowDanmakuController = {
                         showBaseUi = false
-                        showDanmakuController = true
+                        onOpenDanmakuMenu()
                     },
                     onShowVideoListController = {
                         showBaseUi = false
-                        showVideoListController = true
-                    }
+                        onOpenListMenu()
+                    },
+                    onOpenMoreMenu = onOpenMoreMenu
                 )
             } else {
                 MiniControllers(
@@ -280,66 +488,84 @@ fun BvPlayerController(
                 )
             }
         }
+    }
+}
 
-        ResolutionMenuController(
-            show = showResolutionController,
-            onHideController = { showResolutionController = false },
-            onClickResolution = { code ->
-                onChangeResolution(code)
-                showResolutionController = false
+@Composable
+private fun BvPlayerControllerSettingsContent(
+    modifier: Modifier = Modifier,
+    content: @Composable BoxScope.() -> Unit
+) {
+    val context = LocalContext.current
+    val colorScheme =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) dynamicDarkColorScheme(context) else darkColorScheme()
+
+    MaterialTheme(colorScheme = colorScheme) {
+        Surface(
+            modifier = modifier,
+            shape = MaterialTheme.shapes.large.copy(
+                topEnd = CornerSize(0),
+                bottomEnd = CornerSize(0)
+            ),
+        ) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                content()
             }
-        )
-
-        SpeedMenuController(
-            show = showSpeedController,
-            onHideController = { showSpeedController = false },
-            onClickSpeed = { speed ->
-                onChangeSpeed(speed)
-                showSpeedController = false
-            }
-        )
-
-        DanmakuMenuController(
-            show = showDanmakuController,
-            onHideController = { showDanmakuController = false },
-            onEnabledDanmakuTypesChange = onEnabledDanmakuTypesChange,
-            onDanmakuOpacityChange = onDanmakuOpacityChange,
-            onDanmakuScaleChange = onDanmakuScaleChange,
-            onDanmakuAreaChange = onDanmakuAreaChange
-        )
-
-        VideoListMenuController(
-            show = showVideoListController,
-            onHideController = { showVideoListController = false },
-            onClickVideoListItem = onPlayNewVideo
-        )
+        }
     }
 }
 
 private fun Modifier.detectTapAndDragGestures(
     onTap: () -> Unit,
     onLongPress: () -> Unit,
+    onLongPressEnd: () -> Unit,
     onDoubleTap: () -> Unit,
     onVerticalDrag: (move: Float) -> Unit,
-    onHorizontalDrag: (move: Float) -> Unit,
+    onHorizontalDrag: (move: Float, inLeftSafetyArea: Boolean, inRightSafetyArea: Boolean) -> Unit,
     onDragEnd: (verticalMove: Float, horizontalMove: Float) -> Unit,
 ): Modifier = composed {
+    var componentWidth by remember { mutableIntStateOf(0) }
+    val horizontalSafetyArea = 0.1f
     var determinedDirection by remember { mutableStateOf(false) }
     var isHorizontal by remember { mutableStateOf(false) }
-
-    var horizontalPointMove by remember { mutableStateOf(0f) }
-    var verticalPointMove by remember { mutableStateOf(0f) }
+    var horizontalPointMove by remember { mutableFloatStateOf(0f) }
+    var verticalPointMove by remember { mutableFloatStateOf(0f) }
+    var inLeftSafetyArea by remember { mutableStateOf(false) }
+    var inRightSafetyArea by remember { mutableStateOf(false) }
+    var longPressing by remember { mutableStateOf(false) }
 
     pointerInput(Unit) {
         detectTapGestures(
-            onTap = { onTap() },
-            onLongPress = { onLongPress() },
-            onDoubleTap = { onDoubleTap() }
+            onTap = {
+                if (longPressing) return@detectTapGestures
+                onTap()
+            },
+            onLongPress = {
+                onLongPress()
+                longPressing = true
+            },
+            onDoubleTap = {
+                if (longPressing) return@detectTapGestures
+                onDoubleTap()
+            },
+            onPress = {
+                tryAwaitRelease()
+                if (longPressing) onLongPressEnd()
+                longPressing = false
+            }
         )
     }
+        .onSizeChanged { size ->
+            componentWidth = size.width
+        }
         .pointerInput(Unit) {
+            if (longPressing) return@pointerInput
             detectDragGestures(
-                onDragStart = {},
+                onDragStart = {
+                    println("Drag start: $it, safety left x range: [0, ${componentWidth * horizontalSafetyArea}], safety right x range: [${componentWidth * (1 - horizontalSafetyArea)}, ${componentWidth}]")
+                    inLeftSafetyArea = it.x < componentWidth * horizontalSafetyArea
+                    inRightSafetyArea = it.x > componentWidth * (1 - horizontalSafetyArea)
+                },
                 onDragEnd = {
                     if (isHorizontal) {
                         onDragEnd(0f, horizontalPointMove)
@@ -364,11 +590,58 @@ private fun Modifier.detectTapAndDragGestures(
                 }
                 if (determinedDirection) {
                     if (isHorizontal) {
-                        onHorizontalDrag(horizontalPointMove)
+                        onHorizontalDrag(horizontalPointMove, inLeftSafetyArea, inRightSafetyArea)
                     } else {
                         onVerticalDrag(verticalPointMove)
                     }
                 }
             }
         }
+}
+
+@Preview(device = "spec:width=1920px,height=1080px")
+@Composable
+private fun BvPlayerControllerPreview() {
+    var isFullScreen by remember { mutableStateOf(false) }
+
+    MaterialTheme {
+        CompositionLocalProvider(
+            LocalVideoPlayerSeekData provides VideoPlayerSeekData(
+                duration = 123456,
+                position = 12345,
+                bufferedPercentage = 60
+            ),
+            LocalVideoPlayerStateData provides VideoPlayerStateData(
+                isPlaying = true,
+            ),
+            LocalVideoPlayerConfigData provides VideoPlayerConfigData(
+                currentResolution = Resolution.R1080P.code,
+                currentDanmakuEnabled = false
+            )
+        ) {
+            BvPlayerController(
+                isFullScreen = isFullScreen,
+                onEnterFullScreen = { isFullScreen = true },
+                onExitFullScreen = { isFullScreen = false },
+                onBack = {},
+                onPlay = {},
+                onPause = {},
+                onSeekToPosition = {},
+                onChangeResolution = {},
+                onChangeSpeed = {},
+                onToggleDanmaku = {},
+                onEnabledDanmakuTypesChange = {},
+                onDanmakuOpacityChange = {},
+                onDanmakuAreaChange = {},
+                onDanmakuScaleChange = {},
+                onPlayNewVideo = {}
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.White)
+                ) {}
+            }
+        }
+    }
 }

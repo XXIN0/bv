@@ -59,6 +59,7 @@ fun BvPlayer(
     onBack: () -> Unit,
     onClearBackToHistoryData: () -> Unit,
     onChangeResolution: (Int) -> Unit,
+    onChangeSpeed: (Float) -> Unit,
     onToggleDanmaku: (Boolean) -> Unit,
     onEnabledDanmakuTypesChange: (List<DanmakuType>) -> Unit,
     onDanmakuOpacityChange: (Float) -> Unit,
@@ -200,9 +201,9 @@ fun BvPlayer(
             videoPlayer.start()
 
             //reset default play speed
-            //logger.info { "Reset default play speed: $currentPlaySpeed" }
-            //videoPlayer.speed = currentPlaySpeed
-            //playerViewModel.danmakuPlayer?.updatePlaySpeed(currentPlaySpeed)
+            logger.info { "Reset default play speed: ${videoPlayerConfigData.currentVideoSpeed}" }
+            videoPlayer.speed = videoPlayerConfigData.currentVideoSpeed
+            mDanmakuPlayer?.updatePlaySpeed(videoPlayerConfigData.currentVideoSpeed)
         }
 
         override fun onPlay() {
@@ -315,7 +316,11 @@ fun BvPlayer(
                 videoPlayer.seekTo(position)
             },
             onChangeResolution = onChangeResolution,
-            onChangeSpeed = { videoPlayer.speed = it },
+            onChangeSpeed = { speed ->
+                onChangeSpeed(speed)
+                videoPlayer.speed = speed
+                mDanmakuPlayer?.updatePlaySpeed(speed)
+            },
             onToggleDanmaku = {
                 //toggleDanmakuEnabled(videoPlayerConfigData.currentDanmakuEnabled)
                 onToggleDanmaku(videoPlayerConfigData.currentDanmakuEnabled)

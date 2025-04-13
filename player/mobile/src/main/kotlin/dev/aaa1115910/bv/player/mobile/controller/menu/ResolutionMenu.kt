@@ -1,105 +1,81 @@
 package dev.aaa1115910.bv.player.mobile.controller.menu
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandHorizontally
-import androidx.compose.animation.shrinkHorizontally
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CornerSize
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.aaa1115910.bv.player.entity.LocalVideoPlayerConfigData
 import dev.aaa1115910.bv.player.entity.VideoPlayerConfigData
-import dev.aaa1115910.bv.util.ifElse
+import dev.aaa1115910.bv.player.mobile.MaterialDarkTheme
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ResolutionMenu(
+ fun ResolutionMenu(
     modifier: Modifier = Modifier,
-    currentResolutionCode: Int,
-    availableResolutionMap: Map<Int, String>,
-    onClickResolution: (Int) -> Unit
-) {
-    Surface(
-        modifier = modifier,
-        color = Color.Black.copy(alpha = 0.6f),
-        shape = MaterialTheme.shapes.medium.copy(
-            topEnd = CornerSize(0.dp),
-            bottomEnd = CornerSize(0.dp)
-        )
-    ) {
-        Box(
-            modifier = Modifier.fillMaxHeight(),
-            contentAlignment = Alignment.Center
-        ) {
-            LazyColumn(
-                contentPadding = PaddingValues(vertical = 32.dp)
-            ) {
-                items(
-                    items = availableResolutionMap
-                        .toList()
-                        .sortedByDescending { it.first }
-                ) { (code, name) ->
-                    ResolutionListItem(
-                        text = name,
-                        selected = currentResolutionCode == code,
-                        onClick = {
-                            println("click resolution menu: $name($code)")
-                            onClickResolution(code)
-                        }
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun ResolutionMenuController(
-    modifier: Modifier = Modifier,
-    show: Boolean,
-    onHideController: () -> Unit = {},
-    onClickResolution: (Int) -> Unit
+    onClickResolution: (Int) -> Unit,
+    onClose: () -> Unit
 ) {
     val videoPlayerConfigData = LocalVideoPlayerConfigData.current
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .ifElse(show, Modifier.pointerInput(Unit) {
-                detectTapGestures(
-                    onTap = { if (show) onHideController() }
-                )
-            }),
-        contentAlignment = Alignment.CenterEnd
-    ) {
-        AnimatedVisibility(
-            visible = show,
-            enter = expandHorizontally(),
-            exit = shrinkHorizontally()
-        ) {
-            ResolutionMenu(
-                modifier = Modifier,
-                currentResolutionCode = videoPlayerConfigData.currentResolution,
-                availableResolutionMap = videoPlayerConfigData.availableResolutionMap,
-                onClickResolution = onClickResolution
+
+    Scaffold(
+        modifier = modifier,
+        topBar = {
+            TopAppBar(
+                title = { Text(text = "清晰度") },
+                actions = {
+                    IconButton(onClick = onClose) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = null
+                        )
+                    }
+                }
             )
+        }
+    ) { innerPadding ->
+        LazyColumn(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize(),
+            contentPadding = PaddingValues(vertical = 12.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            items(
+                items = videoPlayerConfigData.availableResolutionMap
+                    .toList()
+                    .sortedByDescending { it.first }
+            ) { (code, name) ->
+                ResolutionListItem(
+                    text = name,
+                    selected = videoPlayerConfigData.currentResolution == code,
+                    onClick = {
+                        println("click resolution menu: $name($code)")
+                        onClickResolution(code)
+                    }
+                )
+            }
         }
     }
 }
@@ -171,10 +147,10 @@ private fun ResolutionListItemUnselectedPreview() {
     }
 }
 
-@Preview
+@Preview(device = "spec:width=300dp,height=400dp,dpi=440")
 @Composable
 private fun ResolutionMenuPreview() {
-    MaterialTheme {
+    MaterialDarkTheme {
         CompositionLocalProvider(
             LocalVideoPlayerConfigData provides VideoPlayerConfigData(
                 currentResolution = 32,
@@ -182,27 +158,8 @@ private fun ResolutionMenuPreview() {
             )
         ) {
             ResolutionMenu(
-                currentResolutionCode = 32,
-                availableResolutionMap = availableResolutionMap,
-                onClickResolution = {}
-            )
-        }
-    }
-}
-
-@Preview(device = "spec:parent=pixel_5,orientation=landscape")
-@Composable
-private fun ResolutionMenuControllerPreview() {
-    MaterialTheme {
-        CompositionLocalProvider(
-            LocalVideoPlayerConfigData provides VideoPlayerConfigData(
-                currentResolution = 32,
-                availableResolutionMap = availableResolutionMap
-            )
-        ) {
-            ResolutionMenuController(
-                show = true,
-                onClickResolution = {}
+                onClickResolution = {},
+                onClose = {}
             )
         }
     }

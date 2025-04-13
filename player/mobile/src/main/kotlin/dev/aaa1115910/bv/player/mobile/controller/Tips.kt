@@ -1,9 +1,11 @@
 package dev.aaa1115910.bv.player.mobile.controller
 
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
@@ -14,9 +16,8 @@ import androidx.compose.material.icons.rounded.VolumeDown
 import androidx.compose.material.icons.rounded.VolumeOff
 import androidx.compose.material.icons.rounded.VolumeUp
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -139,8 +140,11 @@ fun BrightnessTip(
 
             ) {
                 Row(
-                    modifier = Modifier.padding(horizontal = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    modifier = Modifier
+                        .padding(horizontal = 12.dp)
+                        .height(48.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Icon(
                         imageVector = when {
@@ -151,15 +155,10 @@ fun BrightnessTip(
                         contentDescription = null,
                         tint = Color.White
                     )
-                    Slider(
+                    LinearProgressIndicator(
                         modifier = Modifier.width(100.dp),
-                        value = displayProgress,
-                        onValueChange = {},
-                        enabled = false,
-                        colors = SliderDefaults.colors(
-                            disabledThumbColor = Color.Transparent,
-                            disabledActiveTrackColor = Color.White
-                        )
+                        progress = { displayProgress },
+                        color = Color.White,
                     )
                 }
             }
@@ -201,8 +200,11 @@ fun VolumeTip(
 
             ) {
                 Row(
-                    modifier = Modifier.padding(horizontal = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    modifier = Modifier
+                        .padding(horizontal = 12.dp)
+                        .height(48.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Icon(
                         imageVector = when {
@@ -213,15 +215,10 @@ fun VolumeTip(
                         contentDescription = null,
                         tint = Color.White
                     )
-                    Slider(
+                    LinearProgressIndicator(
                         modifier = Modifier.width(100.dp),
-                        value = displayProgress,
-                        onValueChange = {},
-                        enabled = false,
-                        colors = SliderDefaults.colors(
-                            disabledThumbColor = Color.Transparent,
-                            disabledActiveTrackColor = Color.White
-                        )
+                        progress = { displayProgress },
+                        color = Color.White,
                     )
                 }
             }

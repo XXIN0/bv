@@ -1,24 +1,22 @@
 package dev.aaa1115910.bv.player.mobile.controller.menu
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandHorizontally
-import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CornerSize
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -29,7 +27,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -40,12 +37,15 @@ import dev.aaa1115910.bv.player.entity.VideoListPgcEpisode
 import dev.aaa1115910.bv.player.entity.VideoListUgcEpisode
 import dev.aaa1115910.bv.player.entity.VideoListUgcEpisodeTitle
 import dev.aaa1115910.bv.player.entity.VideoPlayerConfigData
+import dev.aaa1115910.bv.player.mobile.MaterialDarkTheme
 import dev.aaa1115910.bv.util.ifElse
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VideoListMenu(
     modifier: Modifier = Modifier,
-    onClickVideoListItem: (VideoListItem) -> Unit
+    onClickVideoListItem: (VideoListItem) -> Unit,
+    onClose: () -> Unit
 ) {
     val videoPlayerConfigData = LocalVideoPlayerConfigData.current
     val list = videoPlayerConfigData.availableVideoList
@@ -67,21 +67,28 @@ fun VideoListMenu(
         }
     }
 
-    Surface(
-        modifier = modifier
-            .width(400.dp)
-            .fillMaxHeight()
-            .clickable(false) {},
-        color = Color.Black.copy(0.4f),
-        contentColor = Color.White.copy(alpha = 0.9f),
-        shape = MaterialTheme.shapes.medium.copy(
-            topEnd = CornerSize(0.dp), bottomEnd = CornerSize(0.dp)
-        )
-    ) {
+    Scaffold(
+        modifier = modifier,
+        topBar = {
+            TopAppBar(
+                title = { Text(text = "播放列表") },
+                actions = {
+                    IconButton(onClick = onClose) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = null
+                        )
+                    }
+                }
+            )
+        }
+    ) { innerPadding ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize(),
+            contentPadding = PaddingValues(vertical = 12.dp, horizontal = 12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             items(items = list) { item ->
                 VideoListItem(
@@ -96,36 +103,6 @@ fun VideoListMenu(
 }
 
 @Composable
-fun VideoListMenuController(
-    modifier: Modifier = Modifier,
-    show: Boolean,
-    onHideController: () -> Unit = {},
-    onClickVideoListItem: (VideoListItem) -> Unit
-) {
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .ifElse(show, Modifier.pointerInput(Unit) {
-                detectTapGestures(
-                    onTap = { if (show) onHideController() }
-                )
-            }),
-        contentAlignment = Alignment.CenterEnd
-    ) {
-        AnimatedVisibility(
-            visible = show,
-            enter = expandHorizontally(),
-            exit = shrinkHorizontally()
-        ) {
-            VideoListMenu(
-                modifier = Modifier,
-                onClickVideoListItem = onClickVideoListItem
-            )
-        }
-    }
-}
-
-@Composable
 private fun VideoListItem(
     modifier: Modifier = Modifier,
     item: VideoListItem,
@@ -133,16 +110,15 @@ private fun VideoListItem(
     inUgcEpisode: Boolean,
     onClick: (VideoListItem) -> Unit
 ) {
-    val textPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp)
+    val textPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
     Surface(
         modifier = modifier
             .fillMaxWidth()
             .clip(MaterialTheme.shapes.small)
             .ifElse({ item !is VideoListUgcEpisodeTitle }, Modifier.clickable { onClick(item) }),
         color = if (selected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
-        contentColor = if (selected) contentColorFor(MaterialTheme.colorScheme.primaryContainer) else Color.White.copy(
-            alpha = 0.9f
-        )
+        contentColor = if (selected) contentColorFor(MaterialTheme.colorScheme.primaryContainer)
+        else Color.White.copy(alpha = 0.9f)
     ) {
         when (item) {
             is VideoListPart -> {
@@ -151,7 +127,7 @@ private fun VideoListItem(
                         ?: "") + "P${item.index + 1} ${item.title}",
                     modifier = modifier
                         .padding(textPadding),
-                    maxLines = 1,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
             }
@@ -161,7 +137,7 @@ private fun VideoListItem(
                     text = "EP${item.index + 1} ${item.title}",
                     modifier = modifier
                         .padding(textPadding),
-                    maxLines = 1,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
             }
@@ -171,7 +147,7 @@ private fun VideoListItem(
                     text = item.title,
                     modifier = modifier
                         .padding(textPadding),
-                    maxLines = 1,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
             }
@@ -181,7 +157,7 @@ private fun VideoListItem(
                     text = "EP${item.index + 1} ${item.title}",
                     modifier = modifier
                         .padding(textPadding),
-                    maxLines = 1,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
             }
@@ -193,7 +169,7 @@ private fun VideoListItem(
 @Preview
 @Composable
 private fun VideoListItemPreview() {
-    MaterialTheme {
+    MaterialDarkTheme {
         VideoListItem(
             item = VideoListPart(
                 aid = 0,
@@ -208,7 +184,7 @@ private fun VideoListItemPreview() {
     }
 }
 
-@Preview
+@Preview(device = "spec:width=300dp,height=400dp,dpi=440")
 @Composable
 private fun VideoListMenuContentNormalPartPreview() {
     CompositionLocalProvider(
@@ -224,15 +200,16 @@ private fun VideoListMenuContentNormalPartPreview() {
             currentVideoCid = 3
         )
     ) {
-        MaterialTheme {
+        MaterialDarkTheme {
             VideoListMenu(
-                onClickVideoListItem = {}
+                onClickVideoListItem = {},
+                onClose = {}
             )
         }
     }
 }
 
-@Preview
+@Preview(device = "spec:width=300dp,height=400dp,dpi=440")
 @Composable
 private fun VideoListMenuContentPgcSeasonPreview() {
     CompositionLocalProvider(
@@ -248,15 +225,16 @@ private fun VideoListMenuContentPgcSeasonPreview() {
             currentVideoCid = 3
         )
     ) {
-        MaterialTheme {
+        MaterialDarkTheme {
             VideoListMenu(
-                onClickVideoListItem = {}
+                onClickVideoListItem = {},
+                onClose = {}
             )
         }
     }
 }
 
-@Preview
+@Preview(device = "spec:width=300dp,height=400dp,dpi=440")
 @Composable
 private fun VideoListMenuContentUgcSeasonPreview() {
     CompositionLocalProvider(
@@ -294,35 +272,10 @@ private fun VideoListMenuContentUgcSeasonPreview() {
             currentVideoCid = 3
         )
     ) {
-        MaterialTheme {
+        MaterialDarkTheme {
             VideoListMenu(
-                onClickVideoListItem = {}
-            )
-        }
-    }
-}
-
-@Preview(device = "spec:parent=pixel_5,orientation=landscape")
-@Composable
-private fun VideoListMenuControllerPreview() {
-    CompositionLocalProvider(
-        LocalVideoPlayerConfigData provides VideoPlayerConfigData(
-            availableVideoList = List(20) {
-                VideoListPgcEpisode(
-                    aid = it.toLong(),
-                    cid = it.toLong(),
-                    title = "This is title $it",
-                    index = it
-                )
-            },
-            currentVideoCid = 3
-        )
-    ) {
-        MaterialTheme {
-            VideoListMenuController(
-                show = true,
-                onHideController = {},
-                onClickVideoListItem = {}
+                onClickVideoListItem = {},
+                onClose = {}
             )
         }
     }
