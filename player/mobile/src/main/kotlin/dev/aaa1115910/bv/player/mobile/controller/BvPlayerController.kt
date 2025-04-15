@@ -34,6 +34,8 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -239,6 +241,7 @@ fun BvPlayerControllerVideoContent(
     content: @Composable BoxScope.() -> Unit
 ) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val videoPlayerSeekData = LocalVideoPlayerSeekData.current
     val videoPlayerStateData = LocalVideoPlayerStateData.current
     val videoPlayerConfigData = LocalVideoPlayerConfigData.current
@@ -280,10 +283,10 @@ fun BvPlayerControllerVideoContent(
         }
     }
 
-    val onLongPressEnd: () -> Unit = {
+    val onLongPressEnd: (speed: Float) -> Unit = { oldSpeed ->
         Log.i("BvPlayerController", "Screen long press end")
         is2xPlaying = false
-        onChangeSpeed(1f)
+        onChangeSpeed(oldSpeed)
     }
 
     val onDoubleTap: () -> Unit = {
@@ -370,80 +373,35 @@ fun BvPlayerControllerVideoContent(
         ) {
             Box(
                 modifier = Modifier
-                    .weight(1f)
                     .fillMaxSize()
-                    .detectTapAndDragGestures(
+                    .detectPlayerGestures(
+                        enableSafetyArea = isFullScreen,
+                        currentSpeed = videoPlayerConfigData.currentVideoSpeed,
                         onTap = onTap,
                         onLongPress = onLongPress,
                         onLongPressEnd = onLongPressEnd,
                         onDoubleTap = onDoubleTap,
-                        onVerticalDrag = onMovingBrightness,
-                        onHorizontalDrag = { move, inLeftSafetyArea, _ ->
-                            if (inLeftSafetyArea) {
-                                moveStartInSafetyArea = true
-                                Log.i(
-                                    "BvPlayerController",
-                                    "Left screen horizon drag start in safety area, ignore it"
-                                )
-                                return@detectTapAndDragGestures
-                            }
-                            onHorizontalDrag(move)
-                        },
-                        onDragEnd = { verticalMove, horizontalMove ->
+                        onVolumeDrag = onMovingVolume,
+                        onBrightnessDrag = onMovingBrightness,
+                        onSeekDrag = onHorizontalDrag,
+                        onDragEnd = { volumeMove, brightnessMove, seekMove ->
                             Log.i(
                                 "BvPlayerController",
-                                "Left screen drag end: [x=$verticalMove, y=$horizontalMove]"
+                                "screen drag end: [volume=$volumeMove, brightness=$brightnessMove, seek=$seekMove]"
                             )
-                            if (verticalMove != 0f) {
-                                isMovingBrightness = false
-                            } else {
-                                isMovingSeek = false
-                                if (moveStartInSafetyArea) {
-                                    moveStartInSafetyArea = false
-                                    return@detectTapAndDragGestures
-                                }
-                                val seekMoveMs = horizontalMove.toLong() * 50
-                                onSeekToPosition(moveStartTime + seekMoveMs)
-                                Log.i("BvPlayerController", "Seek move $seekMoveMs")
-                            }
-                        }
-                    )
-            ) {}
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxSize()
-                    .detectTapAndDragGestures(
-                        onTap = onTap,
-                        onLongPress = onLongPress,
-                        onLongPressEnd = onLongPressEnd,
-                        onDoubleTap = onDoubleTap,
-                        onVerticalDrag = onMovingVolume,
-                        onHorizontalDrag = { move, _, inRightSafetyArea ->
-                            if (inRightSafetyArea) {
-                                moveStartInSafetyArea = true
-                                Log.i(
-                                    "BvPlayerController",
-                                    "Right screen horizon drag start in safety area, ignore it"
-                                )
-                                return@detectTapAndDragGestures
-                            }
-                            onHorizontalDrag(move)
-                        },
-                        onDragEnd = { verticalMove, horizontalMove ->
-                            Log.i(
-                                "BvPlayerController",
-                                "Right screen drag end: [x=$verticalMove, y=$horizontalMove]"
-                            )
-                            if (verticalMove != 0f) {
+                            if (volumeMove != 0f) {
                                 isMovingVolume = false
+                                Log.i("BvPlayerController", "Stop move volume")
+                            } else if (brightnessMove != 0f) {
+                                isMovingBrightness = false
+                                Log.i("BvPlayerController", "Stop move brightness")
                             } else {
                                 isMovingSeek = false
                                 if (moveStartInSafetyArea) {
                                     moveStartInSafetyArea = false
-                                    return@detectTapAndDragGestures
+                                    return@detectPlayerGestures
                                 }
-                                val seekMoveMs = horizontalMove.toLong() * 50
+                                val seekMoveMs = seekMove.toLong() * 50
                                 onSeekToPosition(moveStartTime + seekMoveMs)
                                 Log.i("BvPlayerController", "Seek move $seekMoveMs")
                             }
@@ -515,24 +473,32 @@ private fun BvPlayerControllerSettingsContent(
     }
 }
 
-private fun Modifier.detectTapAndDragGestures(
+fun Modifier.detectPlayerGestures(
+    enableSafetyArea: Boolean,
+    currentSpeed: Float,
     onTap: () -> Unit,
     onLongPress: () -> Unit,
-    onLongPressEnd: () -> Unit,
+    onLongPressEnd: (speed: Float) -> Unit,
     onDoubleTap: () -> Unit,
-    onVerticalDrag: (move: Float) -> Unit,
-    onHorizontalDrag: (move: Float, inLeftSafetyArea: Boolean, inRightSafetyArea: Boolean) -> Unit,
-    onDragEnd: (verticalMove: Float, horizontalMove: Float) -> Unit,
+    onVolumeDrag: (move: Float) -> Unit,
+    onBrightnessDrag: (move: Float) -> Unit,
+    onSeekDrag: (move: Float) -> Unit,
+    onDragEnd: (volumeMove: Float, brightnessMove: Float, seekMove: Float) -> Unit,
 ): Modifier = composed {
+    val currentSpeedState = rememberUpdatedState(currentSpeed)
+    var oldPlaySpeed by remember { mutableFloatStateOf(1f) }
     var componentWidth by remember { mutableIntStateOf(0) }
+    var componentHeight by remember { mutableIntStateOf(0) }
     val horizontalSafetyArea = 0.1f
+    val verticalSafetyArea = 0.2f
     var determinedDirection by remember { mutableStateOf(false) }
     var isHorizontal by remember { mutableStateOf(false) }
     var horizontalPointMove by remember { mutableFloatStateOf(0f) }
     var verticalPointMove by remember { mutableFloatStateOf(0f) }
-    var inLeftSafetyArea by remember { mutableStateOf(false) }
-    var inRightSafetyArea by remember { mutableStateOf(false) }
+    var inSafetyArea by remember { mutableStateOf(false) }
     var longPressing by remember { mutableStateOf(false) }
+    var isMovingVolume by remember { mutableStateOf(false) }
+    var isMovingBrightness by remember { mutableStateOf(false) }
 
     pointerInput(Unit) {
         detectTapGestures(
@@ -542,6 +508,7 @@ private fun Modifier.detectTapAndDragGestures(
             },
             onLongPress = {
                 onLongPress()
+                oldPlaySpeed = currentSpeedState.value
                 longPressing = true
             },
             onDoubleTap = {
@@ -550,33 +517,56 @@ private fun Modifier.detectTapAndDragGestures(
             },
             onPress = {
                 tryAwaitRelease()
-                if (longPressing) onLongPressEnd()
+                if (longPressing) onLongPressEnd(oldPlaySpeed)
                 longPressing = false
             }
         )
     }
         .onSizeChanged { size ->
             componentWidth = size.width
+            componentHeight = size.height
         }
-        .pointerInput(Unit) {
+        .pointerInput(enableSafetyArea) {
             if (longPressing) return@pointerInput
+
             detectDragGestures(
                 onDragStart = {
-                    println("Drag start: $it, safety left x range: [0, ${componentWidth * horizontalSafetyArea}], safety right x range: [${componentWidth * (1 - horizontalSafetyArea)}, ${componentWidth}]")
-                    inLeftSafetyArea = it.x < componentWidth * horizontalSafetyArea
-                    inRightSafetyArea = it.x > componentWidth * (1 - horizontalSafetyArea)
+                    println("Drag start: $it, safety x range: (${componentWidth * horizontalSafetyArea}, ${componentWidth * (1 - horizontalSafetyArea)}), safety y range: (${componentHeight * verticalSafetyArea}, ${componentHeight * (1 - verticalSafetyArea)})")
+                    val inHorizontalSafetyArea =
+                        it.x > componentWidth * horizontalSafetyArea * 0.5f && it.x < componentWidth * (1 - horizontalSafetyArea * 0.5f)
+                    val inVerticalSafetyArea =
+                        it.y > componentHeight * verticalSafetyArea * 0.5f && it.y < componentHeight * (1 - verticalSafetyArea * 0.5f)
+                    inSafetyArea =
+                        inHorizontalSafetyArea && inVerticalSafetyArea || !enableSafetyArea
+                    if (!inSafetyArea) return@detectDragGestures
+
+                    if (it.x < componentWidth * 0.5f) {
+                        isMovingBrightness = true
+                    } else if (it.x >= componentWidth * 0.5f) {
+                        isMovingVolume = true
+                    }
                 },
                 onDragEnd = {
+                    if (!inSafetyArea) return@detectDragGestures
+
                     if (isHorizontal) {
-                        onDragEnd(0f, horizontalPointMove)
+                        onDragEnd(0f, 0f, horizontalPointMove)
                     } else {
-                        onDragEnd(verticalPointMove, 0f)
+                        if (isMovingVolume) {
+                            onDragEnd(verticalPointMove, 0f, 0f)
+                        } else if (isMovingBrightness) {
+                            onDragEnd(0f, verticalPointMove, 0f)
+                        }
                     }
+
                     horizontalPointMove = 0f
                     verticalPointMove = 0f
                     determinedDirection = false
+                    isMovingVolume = false
+                    isMovingBrightness = false
                 }
             ) { _, dragAmount ->
+                if (!inSafetyArea) return@detectDragGestures
                 horizontalPointMove += dragAmount.x
                 verticalPointMove += dragAmount.y
                 if (!determinedDirection) {
@@ -590,9 +580,13 @@ private fun Modifier.detectTapAndDragGestures(
                 }
                 if (determinedDirection) {
                     if (isHorizontal) {
-                        onHorizontalDrag(horizontalPointMove, inLeftSafetyArea, inRightSafetyArea)
+                        onSeekDrag(horizontalPointMove)
                     } else {
-                        onVerticalDrag(verticalPointMove)
+                        if (isMovingVolume) {
+                            onVolumeDrag(verticalPointMove)
+                        } else if (isMovingBrightness) {
+                            onBrightnessDrag(verticalPointMove)
+                        }
                     }
                 }
             }
