@@ -6,7 +6,6 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
@@ -30,14 +29,14 @@ import dev.aaa1115910.biliapi.repositories.VideoPlayRepository
 import dev.aaa1115910.bilisubtitle.SubtitleParser
 import dev.aaa1115910.bilisubtitle.entity.SubtitleItem
 import dev.aaa1115910.bv.BVApp
-import dev.aaa1115910.bv.player.entity.Audio
-import dev.aaa1115910.bv.player.entity.Resolution
-import dev.aaa1115910.bv.player.entity.VideoCodec
 import dev.aaa1115910.bv.entity.proxy.ProxyArea
 import dev.aaa1115910.bv.player.AbstractVideoPlayer
+import dev.aaa1115910.bv.player.entity.Audio
 import dev.aaa1115910.bv.player.entity.DanmakuType
 import dev.aaa1115910.bv.player.entity.RequestState
+import dev.aaa1115910.bv.player.entity.Resolution
 import dev.aaa1115910.bv.player.entity.VideoAspectRatio
+import dev.aaa1115910.bv.player.entity.VideoCodec
 import dev.aaa1115910.bv.repository.VideoInfoRepository
 import dev.aaa1115910.bv.util.Prefs
 import dev.aaa1115910.bv.util.fException
@@ -45,7 +44,6 @@ import dev.aaa1115910.bv.util.fInfo
 import dev.aaa1115910.bv.util.fWarn
 import dev.aaa1115910.bv.util.swapList
 import dev.aaa1115910.bv.util.swapListWithMainContext
-import dev.aaa1115910.bv.util.swapMapWithMainContext
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
@@ -74,7 +72,7 @@ class VideoPlayerV3ViewModel(
     val danmakuMasks = mutableStateListOf<DanmakuMaskSegment>()
     var videoShot: VideoShot? by mutableStateOf(null)
 
-    var availableQuality = mutableStateMapOf<Int, String>()
+    var availableQuality = mutableStateListOf<Resolution>()
     var availableVideoCodec = mutableStateListOf<VideoCodec>()
     var availableSubtitle = mutableStateListOf<Subtitle>()
     var availableAudio = mutableStateListOf<Audio>()
@@ -83,7 +81,7 @@ class VideoPlayerV3ViewModel(
     var currentVideoHeight by mutableIntStateOf(0)
     var currentVideoWidth by mutableIntStateOf(0)
 
-    var currentQuality by mutableIntStateOf(Prefs.defaultQuality)
+    var currentQuality by mutableStateOf(Prefs.defaultQuality)
     var currentVideoCodec by mutableStateOf(Prefs.defaultVideoCodec)
     var currentPlaySpeed by mutableFloatStateOf(Prefs.defaultPlaySpeed)
     var currentVideoAspectRatio by mutableStateOf(VideoAspectRatio.Default)
@@ -218,17 +216,15 @@ class VideoPlayerV3ViewModel(
             //logger.info { "Play data: $playData" }
 
             //读取清晰度
-            val resolutionMap = mutableMapOf<Int, String>()
+            val resolutionList = mutableListOf<Resolution>()
             playData.dashVideos.forEach {
-                if (!resolutionMap.containsKey(it.quality)) {
-                    val name = Resolution.fromCode(it.quality)?.getShortDisplayName(BVApp.context)
-                        ?: "Unknown"
-                    resolutionMap[it.quality] = name
+                Resolution.fromCode(it.quality)?.let { resolution ->
+                    if (!resolutionList.contains(resolution)) resolutionList.add(resolution)
                 }
             }
 
-            logger.fInfo { "Video available resolution: $resolutionMap" }
-            availableQuality.swapMapWithMainContext(resolutionMap)
+            logger.fInfo { "Video available resolution: $resolutionList" }
+            availableQuality.swapListWithMainContext(resolutionList)
 
             //读取音频
             val audioList = mutableListOf<Audio>()
@@ -253,10 +249,10 @@ class VideoPlayerV3ViewModel(
 
             //先确认最终所选清晰度
             val existDefaultResolution =
-                availableQuality.keys.find { it == Prefs.defaultQuality } != null
+                availableQuality.find { it == Prefs.defaultQuality } != null
 
             if (!existDefaultResolution) {
-                val tempList = resolutionMap.keys.sorted()
+                val tempList = resolutionList.sortedByDescending { it.code }
                 withContext(Dispatchers.Main) { currentQuality = tempList.first() }
                 tempList.forEach {
                     if (it <= Prefs.defaultQuality) {
@@ -284,7 +280,7 @@ class VideoPlayerV3ViewModel(
             //再确认最终所选视频编码
             updateAvailableCodec()
 
-            playQuality(qn = currentQuality, codec = currentVideoCodec)
+            playQuality(qn = currentQuality.code, codec = currentVideoCodec)
 
         }.onFailure {
             addLogs("加载视频地址失败：${it.localizedMessage}")
@@ -302,7 +298,7 @@ class VideoPlayerV3ViewModel(
         if (Prefs.apiType == ApiType.App && playData!!.codec.isEmpty()) {
             // 纠正当前实际播放的编码
             val videoItem = playData!!.dashVideos
-                .find { it.quality == currentQuality }
+                .find { it.quality == currentQuality.code }
                 ?: playData!!.dashVideos.first()
             withContext(Dispatchers.Main) {
                 currentVideoCodec = VideoCodec.fromCodecId(videoItem.codecId)
@@ -312,7 +308,7 @@ class VideoPlayerV3ViewModel(
 
         val supportedCodec = playData!!.codec
         val codecList =
-            supportedCodec[currentQuality]!!.mapNotNull { VideoCodec.fromCodecString(it) }
+            supportedCodec[currentQuality.code]!!.mapNotNull { VideoCodec.fromCodecString(it) }
 
         availableVideoCodec.swapListWithMainContext(codecList)
         logger.fInfo { "Video available codec: ${availableVideoCodec.toList()}" }
@@ -330,12 +326,21 @@ class VideoPlayerV3ViewModel(
     }
 
     suspend fun playQuality(
-        qn: Int = currentQuality,
+        qn: Resolution = currentQuality,
+        codec: VideoCodec = currentVideoCodec,
+        audio: Audio = currentAudio
+    ) = playQuality(qn.code, codec, audio)
+
+    private suspend fun playQuality(
+        qn: Int = currentQuality.code,
         codec: VideoCodec = currentVideoCodec,
         audio: Audio = currentAudio
     ) {
         logger.fInfo { "Select resolution: $qn, codec: $codec, audio: $audio" }
-        addLogs("播放清晰度：${availableQuality[qn]}, 视频编码：${codec.getDisplayName(BVApp.context)}")
+        addLogs(
+            "播放清晰度：${availableQuality.firstOrNull { it.code == qn }}, " +
+                    "视频编码：${codec.getDisplayName(BVApp.context)}"
+        )
 
         val videoItem = playData!!.dashVideos.find {
             when (Prefs.apiType) {

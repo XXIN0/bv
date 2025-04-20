@@ -71,7 +71,7 @@ fun VideoPlayerV3Screen(
             errorMessage = playerViewModel.errorMessage,
         ),
         LocalVideoPlayerConfigData provides VideoPlayerConfigData(
-            availableResolutionMap = playerViewModel.availableQuality,
+            availableResolutions = playerViewModel.availableQuality,
             availableVideoCodec = playerViewModel.availableVideoCodec,
             availableAudio = playerViewModel.availableAudio,
             availableSubtitleTracks = playerViewModel.availableSubtitle,

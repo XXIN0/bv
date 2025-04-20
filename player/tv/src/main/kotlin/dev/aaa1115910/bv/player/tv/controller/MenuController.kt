@@ -14,7 +14,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -46,6 +45,7 @@ import dev.aaa1115910.biliapi.entity.video.SubtitleType
 import dev.aaa1115910.bv.player.entity.Audio
 import dev.aaa1115910.bv.player.entity.DanmakuType
 import dev.aaa1115910.bv.player.entity.LocalVideoPlayerConfigData
+import dev.aaa1115910.bv.player.entity.Resolution
 import dev.aaa1115910.bv.player.entity.VideoAspectRatio
 import dev.aaa1115910.bv.player.entity.VideoCodec
 import dev.aaa1115910.bv.player.entity.VideoPlayerConfigData
@@ -62,7 +62,7 @@ import kotlinx.coroutines.delay
 fun MenuController(
     modifier: Modifier = Modifier,
     show: Boolean,
-    onResolutionChange: (Int) -> Unit = {},
+    onResolutionChange: (Resolution) -> Unit = {},
     onCodecChange: (VideoCodec) -> Unit = {},
     onAspectRatioChange: (VideoAspectRatio) -> Unit,
     onPlaySpeedChange: (Float) -> Unit = {},
@@ -121,7 +121,7 @@ fun MenuController(
 fun MenuController(
     modifier: Modifier = Modifier,
     defaultFocusRequester: FocusRequester,
-    onResolutionChange: (Int) -> Unit = {},
+    onResolutionChange: (Resolution) -> Unit = {},
     onCodecChange: (VideoCodec) -> Unit = {},
     onAspectRatioChange: (VideoAspectRatio) -> Unit,
     onPlaySpeedChange: (Float) -> Unit,
@@ -199,7 +199,7 @@ fun MenuController(
 private fun MenuList(
     modifier: Modifier = Modifier,
     selectedNavMenu: VideoPlayerMenuNavItem,
-    onResolutionChange: (Int) -> Unit,
+    onResolutionChange: (Resolution) -> Unit,
     onCodecChange: (VideoCodec) -> Unit,
     onAspectRatioChange: (VideoAspectRatio) -> Unit,
     onPlaySpeedChange: (Float) -> Unit,
@@ -261,7 +261,7 @@ fun MenuControllerPreview() {
 
     val defaultFocusRequester = remember { FocusRequester() }
 
-    var currentResolution by remember { mutableIntStateOf(1) }
+    var currentResolution by remember { mutableStateOf(Resolution.R240P) }
     var currentCodec by remember { mutableStateOf(VideoCodec.HEVC) }
     var currentVideoAspectRatio by remember { mutableStateOf(VideoAspectRatio.Default) }
     var currentPlaySpeed by remember { mutableFloatStateOf(1f) }
@@ -333,13 +333,7 @@ fun MenuControllerPreview() {
             Box(modifier = Modifier.fillMaxSize()) {
                 CompositionLocalProvider(
                     LocalVideoPlayerConfigData provides VideoPlayerConfigData(
-                        availableResolutionMap = mapOf(
-                            1 to "1440",
-                            2 to "1080",
-                            3 to "720",
-                            4 to "480",
-                            5 to "360"
-                        ),
+                        availableResolutions = Resolution.entries,
                         availableVideoCodec = VideoCodec.entries,
                         availableAudio = Audio.entries,
 

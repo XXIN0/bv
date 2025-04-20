@@ -63,13 +63,13 @@ data class VideoPlayerStateData(
 )
 
 data class VideoPlayerConfigData(
-    val availableResolutionMap: Map<Int, String> = emptyMap(),
+    val availableResolutions: List<Resolution> = emptyList(),
     val availableVideoCodec: List<VideoCodec> = emptyList(),
     val availableAudio: List<Audio> = emptyList(),
     val availableSubtitleTracks: List<Subtitle> = emptyList(),
     val availableVideoList: List<VideoListItem> = emptyList(),
     val currentVideoCid: Long = 0,
-    val currentResolution: Int = 6,
+    val currentResolution: Resolution = Resolution.R240P,
     val currentVideoCodec: VideoCodec = VideoCodec.AVC,
     val currentVideoAspectRatio: VideoAspectRatio = VideoAspectRatio.Default,
     val currentVideoSpeed: Float = 1f,

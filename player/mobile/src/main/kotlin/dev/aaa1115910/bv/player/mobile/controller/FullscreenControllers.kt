@@ -81,9 +81,7 @@ fun FullscreenControllers(
             currentTime = videoPlayerSeekData.position,
             totalTime = videoPlayerSeekData.duration,
             bufferedSeekPosition = videoPlayerSeekData.bufferedPercentage,
-            currentResolutionName = (Resolution.fromCode(
-                videoPlayerConfigData.currentResolution ?: 6
-            ) ?: Resolution.R1080P).getDisplayName(context),
+            currentResolutionName = videoPlayerConfigData.currentResolution.getDisplayName(context),
             enabledDanmaku = videoPlayerConfigData.currentDanmakuEnabled,
             showPartButton = videoPlayerConfigData.availableVideoList.size > 1,
             onPlay = onPlay,
@@ -267,7 +265,7 @@ fun FullscreenControllerPreview() {
                 isPlaying = true,
             ),
             LocalVideoPlayerConfigData provides VideoPlayerConfigData(
-                currentResolution = Resolution.R1080P.code,
+                currentResolution = Resolution.R1080P,
                 currentDanmakuEnabled = false
             )
         ) {

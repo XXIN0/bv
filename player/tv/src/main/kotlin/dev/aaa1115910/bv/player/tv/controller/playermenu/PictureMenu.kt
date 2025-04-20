@@ -43,7 +43,7 @@ import kotlin.math.roundToInt
 @Composable
 fun PictureMenuList(
     modifier: Modifier = Modifier,
-    onResolutionChange: (Int) -> Unit,
+    onResolutionChange: (Resolution) -> Unit,
     onCodecChange: (VideoCodec) -> Unit,
     onAspectRatioChange: (VideoAspectRatio) -> Unit,
     onPlaySpeedChange: (Float) -> Unit,
@@ -57,11 +57,8 @@ fun PictureMenuList(
 
     val focusRequester = remember { FocusRequester() }
     var selectedPictureMenuItem by remember { mutableStateOf(VideoPlayerPictureMenuItem.Resolution) }
-    val resolutionMap = remember(videoPlayerConfigData.availableResolutionMap) {
-        videoPlayerConfigData.availableResolutionMap
-            .toList()
-            .sortedByDescending { (key, _) -> key }
-            .toMap()
+    val resolutionList = remember(videoPlayerConfigData.availableResolutions) {
+        videoPlayerConfigData.availableResolutions.sortedByDescending { it.code }
     }
     val audioList = remember(videoPlayerConfigData.availableAudio) {
         videoPlayerConfigData.availableAudio.sortedBy { it.ordinal }
@@ -78,14 +75,11 @@ fun PictureMenuList(
             when (selectedPictureMenuItem) {
                 VideoPlayerPictureMenuItem.Resolution -> RadioMenuList(
                     modifier = menuItemsModifier,
-                    items = resolutionMap.keys.toList().map { resolutionCode ->
-                        runCatching {
-                            Resolution.entries.find { it.code == resolutionCode }!!
-                                .getShortDisplayName(context)
-                        }.getOrDefault("unknown: $resolutionCode")
+                    items = resolutionList.map { resolution ->
+                        resolution.getShortDisplayName(context)
                     },
-                    selected = resolutionMap.keys.indexOf(videoPlayerConfigData.currentResolution),
-                    onSelectedChanged = { onResolutionChange(resolutionMap.keys.toList()[it]) },
+                    selected = resolutionList.indexOf(videoPlayerConfigData.currentResolution),
+                    onSelectedChanged = { onResolutionChange(resolutionList[it]) },
                     onFocusBackToParent = {
                         onFocusStateChange(MenuFocusState.Menu)
                         focusRequester.requestFocus()

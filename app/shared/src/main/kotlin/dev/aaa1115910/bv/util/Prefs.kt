@@ -16,8 +16,8 @@ import dev.aaa1115910.biliapi.entity.ApiType
 import dev.aaa1115910.biliapi.http.util.generateBuvid
 import dev.aaa1115910.bv.BVApp
 import dev.aaa1115910.bv.BuildConfig
-import dev.aaa1115910.bv.player.entity.Audio
 import dev.aaa1115910.bv.entity.PlayerType
+import dev.aaa1115910.bv.player.entity.Audio
 import dev.aaa1115910.bv.player.entity.DanmakuType
 import dev.aaa1115910.bv.player.entity.Resolution
 import dev.aaa1115910.bv.player.entity.VideoCodec
@@ -65,9 +65,14 @@ object Prefs {
             dsm.editPreference(PrefKeys.prefTokenExpiredDateKey, value.time)
         }
 
-    var defaultQuality: Int
-        get() = runBlocking { dsm.getPreferenceFlow(PrefKeys.prefDefaultQualityRequest).first() }
-        set(value) = runBlocking { dsm.editPreference(PrefKeys.prefDefaultQualityKey, value) }
+    var defaultQuality: Resolution
+        get() = runBlocking {
+            Resolution.fromCode(dsm.getPreferenceFlow(PrefKeys.prefDefaultQualityRequest).first())
+                ?: Resolution.R1080P
+        }
+        set(value) = runBlocking {
+            dsm.editPreference(PrefKeys.prefDefaultQualityKey, value.code)
+        }
 
     var defaultPlaySpeed: Float
         get() = runBlocking { dsm.getPreferenceFlow(PrefKeys.prefDefaultPlaySpeedRequest).first() }

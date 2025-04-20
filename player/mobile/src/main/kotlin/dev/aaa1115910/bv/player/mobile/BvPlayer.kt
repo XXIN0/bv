@@ -27,6 +27,7 @@ import dev.aaa1115910.bv.player.AbstractVideoPlayer
 import dev.aaa1115910.bv.player.AkDanmakuPlayer
 import dev.aaa1115910.bv.player.BvVideoPlayer
 import dev.aaa1115910.bv.player.VideoPlayerListener
+import dev.aaa1115910.bv.player.entity.Audio
 import dev.aaa1115910.bv.player.entity.DanmakuType
 import dev.aaa1115910.bv.player.entity.LocalVideoPlayerClockData
 import dev.aaa1115910.bv.player.entity.LocalVideoPlayerConfigData
@@ -38,7 +39,9 @@ import dev.aaa1115910.bv.player.entity.LocalVideoPlayerLogsData
 import dev.aaa1115910.bv.player.entity.LocalVideoPlayerSeekData
 import dev.aaa1115910.bv.player.entity.LocalVideoPlayerStateData
 import dev.aaa1115910.bv.player.entity.LocalVideoPlayerVideoInfoData
+import dev.aaa1115910.bv.player.entity.Resolution
 import dev.aaa1115910.bv.player.entity.VideoAspectRatio
+import dev.aaa1115910.bv.player.entity.VideoCodec
 import dev.aaa1115910.bv.player.entity.VideoListItem
 import dev.aaa1115910.bv.player.entity.VideoPlayerClockData
 import dev.aaa1115910.bv.player.entity.VideoPlayerDebugInfoData
@@ -47,7 +50,9 @@ import dev.aaa1115910.bv.player.entity.VideoPlayerStateData
 import dev.aaa1115910.bv.player.mobile.controller.BvPlayerController
 import dev.aaa1115910.bv.util.countDownTimer
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import java.util.Calendar
 
 @Composable
@@ -58,7 +63,9 @@ fun BvPlayer(
     onExitFullScreen: () -> Unit,
     onBack: () -> Unit,
     onClearBackToHistoryData: () -> Unit,
-    onChangeResolution: (Int) -> Unit,
+    onChangeResolution: (Resolution, afterChange: suspend () -> Unit) -> Unit,
+    onChangeVideoCodec: (VideoCodec, afterChange: suspend () -> Unit) -> Unit,
+    onChangeAudio: (Audio, afterChange: suspend () -> Unit) -> Unit,
     onChangeSpeed: (Float) -> Unit,
     onToggleDanmaku: (Boolean) -> Unit,
     onEnabledDanmakuTypesChange: (List<DanmakuType>) -> Unit,
@@ -315,7 +322,33 @@ fun BvPlayer(
                 mDanmakuPlayer?.pause()
                 videoPlayer.seekTo(position)
             },
-            onChangeResolution = onChangeResolution,
+            onChangeResolution = {
+                val currentTime = currentPosition
+                onChangeResolution(it) {
+                    withContext(Dispatchers.Main) {
+                        videoPlayer.seekTo(currentTime)
+                        videoPlayer.start()
+                    }
+                }
+            },
+            onChangeVideoCodec = {
+                val currentTime = currentPosition
+                onChangeVideoCodec(it) {
+                    withContext(Dispatchers.Main) {
+                        videoPlayer.seekTo(currentTime)
+                        videoPlayer.start()
+                    }
+                }
+            },
+            onChangeAudio = {
+                val currentTime = currentPosition
+                onChangeAudio(it) {
+                    withContext(Dispatchers.Main) {
+                        videoPlayer.seekTo(currentTime)
+                        videoPlayer.start()
+                    }
+                }
+            },
             onChangeSpeed = { speed ->
                 onChangeSpeed(speed)
                 videoPlayer.speed = speed

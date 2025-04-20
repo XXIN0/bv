@@ -49,12 +49,12 @@ import dev.aaa1115910.bv.player.entity.LocalVideoPlayerSeekData
 import dev.aaa1115910.bv.player.entity.LocalVideoPlayerStateData
 import dev.aaa1115910.bv.player.entity.LocalVideoPlayerVideoInfoData
 import dev.aaa1115910.bv.player.entity.RequestState
+import dev.aaa1115910.bv.player.entity.Resolution
 import dev.aaa1115910.bv.player.entity.VideoAspectRatio
 import dev.aaa1115910.bv.player.entity.VideoCodec
 import dev.aaa1115910.bv.player.entity.VideoListItem
 import dev.aaa1115910.bv.player.entity.VideoPlayerClockData
 import dev.aaa1115910.bv.player.entity.VideoPlayerDebugInfoData
-import dev.aaa1115910.bv.player.entity.VideoPlayerHistoryData
 import dev.aaa1115910.bv.player.entity.VideoPlayerSeekData
 import dev.aaa1115910.bv.player.entity.VideoPlayerStateData
 import dev.aaa1115910.bv.player.tv.controller.VideoPlayerController
@@ -82,7 +82,7 @@ fun BvPlayer(
     onLoadNextVideo: () -> Unit,
     onExit: () -> Unit,
     onLoadNewVideo: (VideoListItem) -> Unit,
-    onResolutionChange: (Int, afterChange: suspend () -> Unit) -> Unit,
+    onResolutionChange: (Resolution, afterChange: suspend () -> Unit) -> Unit,
     onCodecChange: (VideoCodec, afterChange: suspend () -> Unit) -> Unit,
     onAspectRatioChange: (VideoAspectRatio) -> Unit,
     onPlaySpeedChange: (Float) -> Unit,
@@ -532,10 +532,10 @@ fun BvPlayer(
                 //)
                 onLoadNewVideo(it)
             },
-            onResolutionChange = { qualityId ->
+            onResolutionChange = { resolution ->
                 videoPlayer.pause()
                 val current = videoPlayer.currentPosition
-                onResolutionChange(qualityId) {
+                onResolutionChange(resolution) {
                     //scope.launch(Dispatchers.Default) {
                     //    playerViewModel.updateAvailableCodec()
                     //    playerViewModel.playQuality(qualityId)

@@ -250,7 +250,7 @@ fun VideoPlayerScreen(
                             errorMessage = playerViewModel.errorMessage,
                         ),
                         LocalVideoPlayerConfigData provides VideoPlayerConfigData(
-                            availableResolutionMap = playerViewModel.availableQuality,
+                            availableResolutions = playerViewModel.availableQuality,
                             availableVideoCodec = playerViewModel.availableVideoCodec,
                             availableAudio = playerViewModel.availableAudio,
                             availableSubtitleTracks = playerViewModel.availableSubtitle,
@@ -305,10 +305,25 @@ fun VideoPlayerScreen(
                                 isVideoFullscreen = false
                             },
                             onBack = { (context as Activity).finish() },
-                            onChangeResolution = { code ->
+                            onChangeResolution = { code, afterChange ->
                                 scope.launch(Dispatchers.IO) {
                                     playerViewModel.currentQuality = code
                                     playerViewModel.playQuality(code)
+                                    afterChange()
+                                }
+                            },
+                            onChangeVideoCodec = { codec, afterChange ->
+                                scope.launch(Dispatchers.IO) {
+                                    playerViewModel.currentVideoCodec = codec
+                                    playerViewModel.playQuality(codec = codec)
+                                    afterChange()
+                                }
+                            },
+                            onChangeAudio = { audio, afterChange ->
+                                scope.launch(Dispatchers.IO) {
+                                    playerViewModel.currentAudio = audio
+                                    playerViewModel.playQuality(audio = audio)
+                                    afterChange()
                                 }
                             },
                             onChangeSpeed = { speed ->

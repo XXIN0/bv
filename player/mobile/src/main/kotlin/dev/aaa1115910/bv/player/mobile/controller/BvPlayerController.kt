@@ -51,17 +51,20 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
+import dev.aaa1115910.bv.player.entity.Audio
 import dev.aaa1115910.bv.player.entity.DanmakuType
 import dev.aaa1115910.bv.player.entity.LocalVideoPlayerConfigData
 import dev.aaa1115910.bv.player.entity.LocalVideoPlayerSeekData
 import dev.aaa1115910.bv.player.entity.LocalVideoPlayerStateData
 import dev.aaa1115910.bv.player.entity.Resolution
+import dev.aaa1115910.bv.player.entity.VideoCodec
 import dev.aaa1115910.bv.player.entity.VideoListItem
 import dev.aaa1115910.bv.player.entity.VideoPlayerConfigData
 import dev.aaa1115910.bv.player.entity.VideoPlayerSeekData
 import dev.aaa1115910.bv.player.entity.VideoPlayerStateData
 import dev.aaa1115910.bv.player.mobile.controller.menu.DanmakuMenu
-import dev.aaa1115910.bv.player.mobile.controller.menu.ResolutionMenu
+import dev.aaa1115910.bv.player.mobile.controller.menu.DashMenu
+import dev.aaa1115910.bv.player.mobile.controller.menu.MoreMenu
 import dev.aaa1115910.bv.player.mobile.controller.menu.SpeedMenu
 import dev.aaa1115910.bv.player.mobile.controller.menu.VideoListMenu
 import kotlin.math.absoluteValue
@@ -77,7 +80,9 @@ fun BvPlayerController(
     onPlay: () -> Unit,
     onPause: () -> Unit,
     onSeekToPosition: (Long) -> Unit,
-    onChangeResolution: (Int) -> Unit,
+    onChangeResolution: (Resolution) -> Unit,
+    onChangeVideoCodec: (VideoCodec) -> Unit,
+    onChangeAudio: (Audio) -> Unit,
     onChangeSpeed: (Float) -> Unit,
     onToggleDanmaku: (Boolean) -> Unit,
     onEnabledDanmakuTypesChange: (List<DanmakuType>) -> Unit,
@@ -180,8 +185,10 @@ fun BvPlayerController(
                     }
 
                     MenuType.Resolution -> {
-                        ResolutionMenu(
-                            onClickResolution = onChangeResolution,
+                        DashMenu(
+                            onChangeResolution = onChangeResolution,
+                            onChangeVideoCodec = onChangeVideoCodec,
+                            onChangeAudio = onChangeAudio,
                             onClose = { isMenuOpen = false }
                         )
                     }
@@ -208,7 +215,9 @@ fun BvPlayerController(
                     }
 
                     MenuType.More -> {
-
+                        MoreMenu(
+                            onClose = { isMenuOpen = false }
+                        )
                     }
                 }
             }
@@ -609,7 +618,7 @@ private fun BvPlayerControllerPreview() {
                 isPlaying = true,
             ),
             LocalVideoPlayerConfigData provides VideoPlayerConfigData(
-                currentResolution = Resolution.R1080P.code,
+                currentResolution = Resolution.R1080P,
                 currentDanmakuEnabled = false
             )
         ) {
@@ -622,6 +631,8 @@ private fun BvPlayerControllerPreview() {
                 onPause = {},
                 onSeekToPosition = {},
                 onChangeResolution = {},
+                onChangeVideoCodec = {},
+                onChangeAudio = {},
                 onChangeSpeed = {},
                 onToggleDanmaku = {},
                 onEnabledDanmakuTypesChange = {},

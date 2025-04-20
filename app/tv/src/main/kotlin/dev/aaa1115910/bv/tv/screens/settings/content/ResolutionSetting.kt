@@ -30,7 +30,7 @@ fun ResolutionSetting(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    var selectedResolution by remember { mutableStateOf(Resolution.fromCode(Prefs.defaultQuality)) }
+    var selectedResolution by remember { mutableStateOf(Prefs.defaultQuality) }
 
     Box(
         modifier = modifier
@@ -56,7 +56,7 @@ fun ResolutionSetting(
                         selected = selectedResolution == resolution,
                         onClick = {
                             selectedResolution = resolution
-                            Prefs.defaultQuality = resolution.code
+                            Prefs.defaultQuality = resolution
                         }
                     )
                 }
