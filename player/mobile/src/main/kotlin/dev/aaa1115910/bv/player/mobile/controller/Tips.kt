@@ -21,13 +21,22 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.aaa1115910.bv.util.formatMinSec
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun SeekMoveTip(
@@ -122,12 +131,27 @@ fun BrightnessTip(
     show: Boolean,
     progress: Float,
 ) {
+    val scope = rememberCoroutineScope()
+
     val displayProgress by animateFloatAsState(
         targetValue = progress,
         label = "VolumeTipProgress"
     )
+    val showValue by rememberUpdatedState(show)
+    var showTip by remember { mutableStateOf(false) }
 
-    if (show) {
+    LaunchedEffect(showValue) {
+        if (!showValue) {
+            scope.launch(Dispatchers.Default) {
+                delay(500)
+                if (!showValue) showTip = false
+            }
+        } else {
+            showTip = true
+        }
+    }
+
+    if (showTip) {
         Box(
             modifier = modifier
                 .fillMaxSize()
@@ -182,10 +206,25 @@ fun VolumeTip(
     show: Boolean,
     progress: Float,
 ) {
+    val scope = rememberCoroutineScope()
+
     val displayProgress by animateFloatAsState(
         targetValue = progress,
         label = "VolumeTipProgress"
     )
+    val showValue by rememberUpdatedState(show)
+    var showTip by remember { mutableStateOf(false) }
+
+    LaunchedEffect(showValue) {
+        if (!showValue) {
+            scope.launch(Dispatchers.Default) {
+                delay(500)
+                if (!showValue) showTip = false
+            }
+        } else {
+            showTip = true
+        }
+    }
 
     if (show) {
         Box(

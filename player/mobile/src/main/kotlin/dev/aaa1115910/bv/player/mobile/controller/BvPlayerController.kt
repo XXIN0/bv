@@ -62,6 +62,7 @@ import dev.aaa1115910.bv.player.entity.VideoListItem
 import dev.aaa1115910.bv.player.entity.VideoPlayerConfigData
 import dev.aaa1115910.bv.player.entity.VideoPlayerSeekData
 import dev.aaa1115910.bv.player.entity.VideoPlayerStateData
+import dev.aaa1115910.bv.player.mobile.MaterialDarkTheme
 import dev.aaa1115910.bv.player.mobile.controller.menu.DanmakuMenu
 import dev.aaa1115910.bv.player.mobile.controller.menu.DashMenu
 import dev.aaa1115910.bv.player.mobile.controller.menu.MoreMenu
@@ -115,6 +116,7 @@ fun BvPlayerController(
     var menuType by remember { mutableStateOf(MenuType.None) }
 
     val openMenu: (menu: MenuType) -> Unit = { menu ->
+        println("open menu: $menu")
         menuType = menu
         isMenuOpen = true
     }
@@ -133,6 +135,7 @@ fun BvPlayerController(
         ) {
             BvPlayerControllerVideoContent(
                 modifier = Modifier.fillMaxSize(),
+                isMenuOpen = isMenuOpen,
                 isFullScreen = isFullScreen,
                 onEnterFullScreen = onEnterFullScreen,
                 onExitFullScreen = onExitFullScreen,
@@ -146,7 +149,8 @@ fun BvPlayerController(
                 onOpenSpeedMenu = { openMenu(MenuType.Speed) },
                 onOpenResolutionMenu = { openMenu(MenuType.Resolution) },
                 onOpenDanmakuMenu = { openMenu(MenuType.Danmaku) },
-                onOpenListMenu = { openMenu(MenuType.List) }
+                onOpenListMenu = { openMenu(MenuType.List) },
+                onCloseMenu = { isMenuOpen = false }
             ) {
                 Box(
                     modifier = Modifier.clip(RoundedCornerShape(0.dp))
@@ -169,70 +173,103 @@ fun BvPlayerController(
                 }
                 .background(Color.Black)
         ) {
-            BvPlayerControllerSettingsContent(
-                modifier = Modifier.fillMaxSize()
-            ) {
-                when (menuType) {
-                    MenuType.None -> {
-
-                    }
-
-                    MenuType.Speed -> {
-                        SpeedMenu(
-                            onClickSpeed = onChangeSpeed,
-                            onClose = { isMenuOpen = false }
-                        )
-                    }
-
-                    MenuType.Resolution -> {
-                        DashMenu(
-                            onChangeResolution = onChangeResolution,
-                            onChangeVideoCodec = onChangeVideoCodec,
-                            onChangeAudio = onChangeAudio,
-                            onClose = { isMenuOpen = false }
-                        )
-                    }
-
-                    MenuType.Danmaku -> {
-                        DanmakuMenu(
-                            onEnabledDanmakuTypeChange = onEnabledDanmakuTypesChange,
-                            onDanmakuScaleChange = onDanmakuScaleChange,
-                            onDanmakuOpacityChange = onDanmakuOpacityChange,
-                            onDanmakuAreaChange = onDanmakuAreaChange,
-                            onClose = { isMenuOpen = false }
-                        )
-                    }
-
-                    MenuType.List -> {
-                        VideoListMenu(
-                            onClickVideoListItem = onPlayNewVideo,
-                            onClose = { isMenuOpen = false }
-                        )
-                    }
-
-                    MenuType.Subtitle -> {
-
-                    }
-
-                    MenuType.More -> {
-                        MoreMenu(
-                            onClose = { isMenuOpen = false }
-                        )
-                    }
-                }
-            }
+            BvPlayerControllerSettings(
+                modifier = Modifier.fillMaxSize(),
+                menuType = menuType,
+                onCloseMenu = { isMenuOpen = false },
+                onChangeResolution = onChangeResolution,
+                onChangeVideoCodec = onChangeVideoCodec,
+                onChangeAudio = onChangeAudio,
+                onChangeSpeed = onChangeSpeed,
+                onEnabledDanmakuTypesChange = onEnabledDanmakuTypesChange,
+                onDanmakuOpacityChange = onDanmakuOpacityChange,
+                onDanmakuScaleChange = onDanmakuScaleChange,
+                onDanmakuAreaChange = onDanmakuAreaChange,
+                onPlayNewVideo = onPlayNewVideo
+            )
         }
     }
 }
-
 
 private enum class MenuType {
     None, Speed, Resolution, Danmaku, List, Subtitle, More
 }
 
 @Composable
+private fun BvPlayerControllerSettings(
+    modifier: Modifier = Modifier,
+    menuType: MenuType,
+    onCloseMenu: () -> Unit,
+    onChangeResolution: (Resolution) -> Unit,
+    onChangeVideoCodec: (VideoCodec) -> Unit,
+    onChangeAudio: (Audio) -> Unit,
+    onChangeSpeed: (Float) -> Unit,
+    onEnabledDanmakuTypesChange: (List<DanmakuType>) -> Unit,
+    onDanmakuOpacityChange: (Float) -> Unit,
+    onDanmakuScaleChange: (Float) -> Unit,
+    onDanmakuAreaChange: (Float) -> Unit,
+    onPlayNewVideo: (VideoListItem) -> Unit
+) {
+    MaterialDarkTheme {
+        Box(
+            modifier = modifier
+        ) {
+            when (menuType) {
+                MenuType.None -> {
+
+                }
+
+                MenuType.Speed -> {
+                    SpeedMenu(
+                        onClickSpeed = onChangeSpeed,
+                        onClose = onCloseMenu
+                    )
+                }
+
+                MenuType.Resolution -> {
+                    DashMenu(
+                        onChangeResolution = onChangeResolution,
+                        onChangeVideoCodec = onChangeVideoCodec,
+                        onChangeAudio = onChangeAudio,
+                        onClose = onCloseMenu
+                    )
+                }
+
+                MenuType.Danmaku -> {
+                    DanmakuMenu(
+                        onEnabledDanmakuTypeChange = onEnabledDanmakuTypesChange,
+                        onDanmakuScaleChange = onDanmakuScaleChange,
+                        onDanmakuOpacityChange = onDanmakuOpacityChange,
+                        onDanmakuAreaChange = onDanmakuAreaChange,
+                        onClose = onCloseMenu
+                    )
+                }
+
+                MenuType.List -> {
+                    VideoListMenu(
+                        onClickVideoListItem = onPlayNewVideo,
+                        onClose = onCloseMenu
+                    )
+                }
+
+                MenuType.Subtitle -> {
+
+                }
+
+                MenuType.More -> {
+                    MoreMenu(
+                        onClose = onCloseMenu
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
 fun BvPlayerControllerVideoContent(
     modifier: Modifier = Modifier,
+    isMenuOpen: Boolean,
     isFullScreen: Boolean,
     onEnterFullScreen: () -> Unit,
     onExitFullScreen: () -> Unit,
@@ -247,6 +284,7 @@ fun BvPlayerControllerVideoContent(
     onOpenResolutionMenu: () -> Unit,
     onOpenDanmakuMenu: () -> Unit,
     onOpenListMenu: () -> Unit,
+    onCloseMenu: () -> Unit,
     content: @Composable BoxScope.() -> Unit
 ) {
     val context = LocalContext.current
@@ -255,6 +293,7 @@ fun BvPlayerControllerVideoContent(
     val videoPlayerStateData = LocalVideoPlayerStateData.current
     val videoPlayerConfigData = LocalVideoPlayerConfigData.current
     var showBaseUi by remember { mutableStateOf(false) }
+    val isMenuOpen by rememberUpdatedState(isMenuOpen)
 
     //在手势触发的事件中，直接读取 isPlaying currentTime 参数都只会读取到错误的值，原因未知
     var isPlaying by remember { mutableStateOf(videoPlayerStateData.isPlaying) }
@@ -279,7 +318,11 @@ fun BvPlayerControllerVideoContent(
 
     val onTap: () -> Unit = {
         Log.i("BvPlayerController", "Screen tap")
-        if (!is2xPlaying) showBaseUi = !showBaseUi
+        if (isMenuOpen) {
+            onCloseMenu()
+        } else {
+            if (!is2xPlaying) showBaseUi = !showBaseUi
+        }
     }
 
     val onLongPress: () -> Unit = {
