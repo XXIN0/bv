@@ -38,6 +38,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
@@ -140,6 +141,7 @@ fun DynamicContent(
 
         DynamicType.Forward -> DynamicForward(
             modifier = modifier,
+            word = dynamicItem.word,
             dynamicItem = dynamicItem.orig!!,
             previewerState = previewerState,
             onShowPreviewer = onShowPreviewer,
@@ -151,11 +153,28 @@ fun DynamicContent(
             liveRcmd = dynamicItem.liveRcmd!!
         )
 
-        DynamicType.UgcSeason -> TODO()
+        DynamicType.UgcSeason -> {
+            Text("${dynamicItem}")
+        }
 
         DynamicType.Word -> DynamicWord(
             modifier = contentModifier,
             word = dynamicItem.word!!
+        )
+
+        DynamicType.Pgc -> DynamicPgc(
+            modifier = contentModifier,
+            pgc = dynamicItem.pgc!!
+        )
+
+        DynamicType.Article -> DynamicArticle(
+            modifier = contentModifier,
+            article = dynamicItem.article!!
+        )
+
+        DynamicType.None -> DynamicNone(
+            modifier = contentModifier,
+            none = dynamicItem.none!!
         )
     }
 }
@@ -583,33 +602,46 @@ fun DynamicWord(
 @Composable
 fun DynamicForward(
     modifier: Modifier = Modifier,
+    word: DynamicItem.DynamicWordModule?,
     dynamicItem: DynamicItem,
     previewerState: ImagePreviewerState,
     horizontalPadding: Dp = 12.dp,
     onShowPreviewer: (newPictures: List<Picture>, afterSetPictures: () -> Unit) -> Unit,
     onClick: () -> Unit
 ) {
-    Surface(
+    Column(
         modifier = modifier,
-        color = MaterialTheme.colorScheme.surfaceContainer,
-        onClick = onClick
     ) {
-        Box(
-            modifier = Modifier.padding(horizontal = horizontalPadding, vertical = 6.dp),
+        if (word != null) {
+            Text(
+                modifier = Modifier.padding(horizontal = horizontalPadding),
+                text = word.text
+            )
+        }
+        Surface(
+            color = MaterialTheme.colorScheme.surfaceContainer,
+            onClick = onClick
         ) {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+            Box(
+                modifier = Modifier.padding(horizontal = horizontalPadding, vertical = 6.dp),
             ) {
-                DynamicForwardHeader(
-                    author = dynamicItem.author
-                )
-                DynamicContent(
-                    dynamicItem = dynamicItem,
-                    horizontalPadding = 0.dp,
-                    previewerState = previewerState,
-                    onShowPreviewer = onShowPreviewer,
-                    onClick = {}
-                )
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    if (dynamicItem.author.mid != -1L) {
+                        DynamicForwardHeader(
+                            author = dynamicItem.author
+                        )
+                    }
+                    DynamicContent(
+                        modifier = Modifier.fillMaxWidth(),
+                        dynamicItem = dynamicItem,
+                        horizontalPadding = 0.dp,
+                        previewerState = previewerState,
+                        onShowPreviewer = onShowPreviewer,
+                        onClick = {}
+                    )
+                }
             }
         }
     }
@@ -671,6 +703,74 @@ fun DynamicLiveRcmd(
             }
         }
         Text(text = liveRcmd.title)
+    }
+}
+
+@Composable
+fun DynamicPgc(
+    modifier: Modifier = Modifier,
+    pgc: DynamicItem.DynamicPgcModule
+) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(1.6f)
+        ) {
+            AsyncImage(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1.6f)
+                    .clip(MaterialTheme.shapes.large),
+                model = pgc.cover.resizedImageUrl(ImageSize.SmallVideoCardCover),
+                contentDescription = null,
+                contentScale = ContentScale.FillBounds
+            )
+        }
+        Text(text = pgc.title)
+    }
+}
+
+@Composable
+fun DynamicArticle(
+    modifier: Modifier = Modifier,
+    article: DynamicItem.DynamicArticleModule
+) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            text = article.title,
+            fontWeight = FontWeight.Bold
+        )
+        Text(text = article.text)
+        if (article.covers.isNotEmpty()) {
+            AsyncImage(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(MaterialTheme.shapes.large),
+                model = article.covers.first().resizedImageUrl(ImageSize.SmallVideoCardCover),
+                contentDescription = null,
+                contentScale = ContentScale.FillBounds
+            )
+        }
+    }
+}
+
+@Composable
+fun DynamicNone(
+    modifier: Modifier = Modifier,
+    none: DynamicItem.DynamicNoneModule
+) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(text = none.text)
     }
 }
 
@@ -759,10 +859,27 @@ private val emptyDynamicDrawData = DynamicItem(
     footer = exampleFooterData
 )
 
+private val emptyDynamicWordData = DynamicItem.DynamicWordModule(
+    text = "this is word module"
+)
+
 private val exampleDynamicForwardData = DynamicItem(
     type = DynamicType.Forward,
     author = exampleAuthorData,
     orig = emptyDynamicVideoData,
+    word = emptyDynamicWordData,
+    footer = exampleFooterData
+)
+
+private val exampleDynamicForwardNoneData = DynamicItem(
+    type = DynamicType.Forward,
+    author = exampleAuthorData,
+    orig = DynamicItem(
+        type = DynamicType.None,
+        author = DynamicItem.DynamicAuthorModule("", "", -1, "", ""),
+        none = DynamicItem.DynamicNoneModule("unknown dynamic")
+    ),
+    word = emptyDynamicWordData,
     footer = exampleFooterData
 )
 
@@ -773,6 +890,32 @@ private val exampleDynamicLiveRcmdData = DynamicItem(
         cover = "",
         title = "title",
         roomId = 3
+    ),
+    footer = exampleFooterData
+)
+
+private val exampleDynamicPgcData = DynamicItem(
+    type = DynamicType.Pgc,
+    author = exampleAuthorData,
+    pgc = DynamicItem.DynamicPgcModule(
+        cover = "",
+        title = "title",
+        seasonId = 3,
+        epid = 3
+    ),
+    footer = exampleFooterData
+)
+
+private val exampleDynamicArticleData = DynamicItem(
+    type = DynamicType.Article,
+    author = exampleAuthorData,
+    article = DynamicItem.DynamicArticleModule(
+        title = "title",
+        text = "article content",
+        covers = listOf(""),
+        id = 0,
+        url = "",
+        label = ""
     ),
     footer = exampleFooterData
 )
@@ -831,6 +974,19 @@ private fun DynamicForwardItemPreview() {
 
 @Preview
 @Composable
+private fun DynamicForwardItemNonePreview() {
+    BVMobileTheme {
+        Surface {
+            DynamicItem(
+                modifier = Modifier.padding(vertical = 8.dp),
+                dynamicItem = exampleDynamicForwardNoneData
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
 private fun DynamicLiveRcmdItemPreview() {
     BVMobileTheme {
         Surface {
@@ -857,6 +1013,32 @@ private fun DynamicItemListPreview() {
                     )
                 }
             }
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun DynamicPgcItemPreview() {
+    BVMobileTheme {
+        Surface {
+            DynamicItem(
+                modifier = Modifier.padding(vertical = 8.dp),
+                dynamicItem = exampleDynamicPgcData
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun DynamicArticleItemPreview() {
+    BVMobileTheme {
+        Surface {
+            DynamicItem(
+                modifier = Modifier.padding(vertical = 8.dp),
+                dynamicItem = exampleDynamicArticleData
+            )
         }
     }
 }

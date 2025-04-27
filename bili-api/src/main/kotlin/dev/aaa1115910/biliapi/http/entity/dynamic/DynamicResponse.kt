@@ -29,7 +29,7 @@ data class DynamicData(
 data class DynamicItem(
     val basic: Basic,
     @SerialName("id_str")
-    val idStr: String,
+    val idStr: String? = null,
     val modules: Modules,
     val orig: DynamicItem? = null,
     val type: String,
@@ -218,6 +218,11 @@ data class DynamicItem(
                 val liveRcmd: LiveRcmd? = null,
                 val opus: Opus? = null,
                 val draw: Draw? = null,
+                val pgc: Pgc? = null,
+                val article: Article? = null,
+                val none: None? = null,
+                @SerialName("ugc_season")
+                val ugcSeason:UgcSeason?=null,
                 val type: String
             ) {
                 @Serializable
@@ -298,6 +303,56 @@ data class DynamicItem(
                         val tags: List<String>
                     )
                 }
+
+                @Serializable
+                data class Pgc(
+                    val badge: Archive.Badge,
+                    val cover: String,
+                    val epid: Int,
+                    @SerialName("jump_url")
+                    val jumpUrl: String,
+                    @SerialName("season_id")
+                    val seasonId: Int,
+                    val stat: Archive.Stat,
+                    @SerialName("sub_type")
+                    val subType: Int,
+                    val title: String,
+                    val type: Int
+                )
+
+                @Serializable
+                data class Article(
+                    val covers: List<String>,
+                    val desc: String,
+                    val id: Int,
+                    @SerialName("jump_url")
+                    val jumpUrl: String,
+                    val label: String,
+                    val title: String
+                )
+
+                @Serializable
+                data class None(
+                    val tips: String
+                )
+
+                @Serializable
+                data class UgcSeason(
+                    val aid: Long,
+                    val badge: Archive.Badge,
+                    val bvid: String,
+                    val cover: String,
+                    val desc: String,
+                    @SerialName("disable_preview")
+                    val disablePreview: Int,
+                    @SerialName("duration_text")
+                    val durationText: String,
+                    @SerialName("jump_url")
+                    val jumpUrl: String,
+                    val stat: Archive.Stat,
+                    val title: String,
+                    val type: Int
+                )
             }
 
             @Serializable

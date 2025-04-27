@@ -33,12 +33,14 @@ import com.origeek.imageViewer.previewer.ImagePreviewerState
 import dev.aaa1115910.biliapi.entity.Picture
 import dev.aaa1115910.biliapi.entity.user.DynamicItem
 import dev.aaa1115910.biliapi.entity.user.DynamicType
-import dev.aaa1115910.bv.util.ifElse
 import dev.aaa1115910.bv.mobile.activities.DynamicDetailActivity
+import dev.aaa1115910.bv.mobile.activities.VideoPlayerActivity
 import dev.aaa1115910.bv.mobile.component.home.dynamic.DynamicItem
 import dev.aaa1115910.bv.util.OnBottomReached
 import dev.aaa1115910.bv.util.fInfo
 import dev.aaa1115910.bv.util.getLane
+import dev.aaa1115910.bv.util.ifElse
+import dev.aaa1115910.bv.util.toast
 import dev.aaa1115910.bv.viewmodel.home.DynamicViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Dispatchers
@@ -62,14 +64,24 @@ fun DynamicScreen(
     val lane by remember { derivedStateOf { dynamicGridState.getLane() } }
 
     val onClickDynamicItem: (DynamicItem) -> Unit = { dynamicItem ->
-        DynamicDetailActivity.actionStart(context, dynamicItem.id)
+        logger.fInfo { "click dynamic type: ${dynamicItem.type}" }
+        when (dynamicItem.type) {
+            DynamicType.Av -> {
+                VideoPlayerActivity.actionStart(
+                    context = context,
+                    aid = dynamicItem.video!!.aid,
+                    fromSeason = dynamicItem.video!!.seasonId != 0
+                )
+            }
 
-        /*if (dynamicItem.type == DynamicType.Av)
-            VideoPlayerActivity.actionStart(
-                context = context,
-                aid = dynamicItem.video!!.aid,
-                fromSeason = dynamicItem.video!!.seasonId != 0
-            )*/
+            else -> {
+                if (dynamicItem.id != null) {
+                    DynamicDetailActivity.actionStart(context, dynamicItem.id!!)
+                } else {
+                    "原动态不存在".toast(context)
+                }
+            }
+        }
     }
 
     dynamicGridState.OnBottomReached(
