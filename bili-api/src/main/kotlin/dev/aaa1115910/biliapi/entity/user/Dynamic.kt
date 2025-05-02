@@ -206,12 +206,13 @@ data class DynamicItem(
                     item.getOpusSummaryModule()?.let { opusSummaryModule ->
                         DynamicDrawModule.fromModuleOpusSummaryAndModuleDynamic(
                             opusSummaryModule,
-                            item.getDynamicModule()!!
+                            item.getDynamicModule()
                         )
                     } ?: let {
                         DynamicDrawModule.fromModuleDescAndModuleDynamic(
+                            item.getParagraphModule(),
                             item.getDescModule()!!,
-                            item.getDynamicModule()!!
+                            item.getDynamicModule()
                         )
                     }
 
@@ -367,12 +368,14 @@ data class DynamicItem(
     }
 
     data class DynamicDrawModule(
+        val title: String?,
         val text: String,
         val images: List<Picture>
     ) {
         companion object {
             fun fromModuleDynamic(moduleDynamic: dev.aaa1115910.biliapi.http.entity.dynamic.DynamicItem.Modules.Dynamic) =
                 DynamicDrawModule(
+                    title = null,
                     text = moduleDynamic.desc!!.text,
                     images = moduleDynamic.major!!.draw!!.items
                         .map(Picture::fromPicture)
@@ -381,10 +384,18 @@ data class DynamicItem(
 
             fun fromModuleOpusSummaryAndModuleDynamic(
                 moduleOpusSummary: bilibili.app.dynamic.v2.ModuleOpusSummary,
-                moduleDynamic: bilibili.app.dynamic.v2.ModuleDynamic
+                moduleDynamic: bilibili.app.dynamic.v2.ModuleDynamic?
             ): DynamicDrawModule {
+                var title = ""
                 var text = ""
                 val images = mutableListOf<Picture>()
+
+                when (val titleContentType = moduleOpusSummary.title.contentCase) {
+                    Paragraph.ContentCase.TEXT -> title = moduleOpusSummary.title.text.nodesList
+                        .joinToString("") { it.rawText }
+
+                    else -> println("not implemented: ModuleOpusSummary titleContentType: $titleContentType")
+                }
 
                 when (val summaryContentType = moduleOpusSummary.summary.contentCase) {
                     Paragraph.ContentCase.TEXT -> text = moduleOpusSummary.summary.text.nodesList
@@ -393,7 +404,8 @@ data class DynamicItem(
                     else -> println("not implemented: ModuleOpusSummary summaryContentType: $summaryContentType")
                 }
 
-                when (val dynamicItemType = moduleDynamic.moduleItemCase) {
+                when (val dynamicItemType = moduleDynamic?.moduleItemCase) {
+                    null -> println("ModuleDynamic is null")
                     ModuleItemCase.DYN_DRAW -> images.addAll(
                         moduleDynamic.dynDraw.itemsList.map(Picture::fromPicture)
                     )
@@ -402,21 +414,36 @@ data class DynamicItem(
                 }
 
                 return DynamicDrawModule(
+                    title = title,
                     text = text,
                     images = images.distinctBy { it.url }
                 )
             }
 
             fun fromModuleDescAndModuleDynamic(
+                moduleParagraph: bilibili.app.dynamic.v2.ModuleParagraph?,
                 moduleDesc: bilibili.app.dynamic.v2.ModuleDesc,
-                moduleDynamic: bilibili.app.dynamic.v2.ModuleDynamic
+                moduleDynamic: bilibili.app.dynamic.v2.ModuleDynamic?
             ): DynamicDrawModule {
+                var title = ""
                 var text = ""
                 val images = mutableListOf<Picture>()
 
                 text = moduleDesc.descList.joinToString("") { it.text }
 
-                when (val dynamicItemType = moduleDynamic.moduleItemCase) {
+                if (moduleParagraph != null && moduleParagraph.isArticleTitle) {
+
+                    when (val titleContentType = moduleParagraph.paragraph.contentCase) {
+                        Paragraph.ContentCase.TEXT -> title =
+                            moduleParagraph.paragraph.text.nodesList
+                                .joinToString("") { it.rawText }
+
+                        else -> println("not implemented: ModuleOpusSummary titleContentType: $titleContentType")
+                    }
+                }
+
+                when (val dynamicItemType = moduleDynamic?.moduleItemCase) {
+                    null -> println("ModuleDynamic is null")
                     ModuleItemCase.DYN_DRAW -> images.addAll(
                         moduleDynamic.dynDraw.itemsList.map(Picture::fromPicture)
                     )
@@ -425,6 +452,7 @@ data class DynamicItem(
                 }
 
                 return DynamicDrawModule(
+                    title = title,
                     text = text,
                     images = images.distinctBy { it.url }
                 )
@@ -844,6 +872,7 @@ private fun Module.isModuleOpusSummary() = moduleType == DynModuleType.module_op
 private fun Module.isStatModule() = moduleType == DynModuleType.module_stat
 private fun Module.isBottomModel() = moduleType == DynModuleType.module_bottom
 private fun Module.isItemNullModel() = moduleType == DynModuleType.module_item_null
+private fun Module.isParagraphModel() = moduleType == DynModuleType.module_paragraph
 
 private fun bilibili.app.dynamic.v2.DynamicItem.getAuthorModule() =
     modulesList.firstOrNull { it.isAuthorModule() }?.moduleAuthor
@@ -868,3 +897,6 @@ private fun bilibili.app.dynamic.v2.DynamicItem.getBottomModule() =
 
 private fun bilibili.app.dynamic.v2.DynamicItem.getItemNullModule() =
     modulesList.firstOrNull { it.isItemNullModel() }?.moduleItemNull
+
+private fun bilibili.app.dynamic.v2.DynamicItem.getParagraphModule() =
+    modulesList.firstOrNull { it.isParagraphModel() }?.moduleParagraph

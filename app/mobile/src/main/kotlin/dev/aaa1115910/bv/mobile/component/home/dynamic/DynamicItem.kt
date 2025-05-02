@@ -439,6 +439,12 @@ fun DynamicDraw(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
+        if (draw.title != null) {
+            Text(
+                text = draw.title!!,
+                fontWeight = FontWeight.Bold
+            )
+        }
         Text(text = draw.text)
         DynamicPictures(
             pictures = draw.images,
@@ -853,6 +859,7 @@ private val emptyDynamicDrawData = DynamicItem(
     type = DynamicType.Draw,
     author = exampleAuthorData,
     draw = DynamicItem.DynamicDrawModule(
+        title = "title",
         text = "draw",
         images = emptyList()
     ),
@@ -938,6 +945,7 @@ private class DynamicDrawItemProvider : PreviewParameterProvider<DynamicItem> {
         emptyDynamicData.copy(
             type = DynamicType.Draw,
             draw = DynamicItem.DynamicDrawModule(
+                title = "title",
                 text = "this is $index picture draw",
                 images = Array(index) { Picture("", 0, 0, "${UUID.randomUUID()}") }.toList()
             )
