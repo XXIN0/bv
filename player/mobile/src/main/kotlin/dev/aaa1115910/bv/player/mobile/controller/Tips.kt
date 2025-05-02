@@ -135,7 +135,7 @@ fun BrightnessTip(
 
     val displayProgress by animateFloatAsState(
         targetValue = progress,
-        label = "VolumeTipProgress"
+        label = "BrightnessTipProgress"
     )
     val showValue by rememberUpdatedState(show)
     var showTip by remember { mutableStateOf(false) }
@@ -226,7 +226,7 @@ fun VolumeTip(
         }
     }
 
-    if (show) {
+    if (showTip) {
         Box(
             modifier = modifier
                 .fillMaxSize()
