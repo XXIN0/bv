@@ -586,6 +586,8 @@ data class DynamicItem(
         val epid: Int,
         val seasonId: Int,
         val cover: String,
+        val aid: Long,
+        val cid: Long
     ) {
         companion object {
             fun fromModulePgc(modulePgc: dev.aaa1115910.biliapi.http.entity.dynamic.DynamicItem.Modules.Dynamic.Major.Pgc) =
@@ -593,7 +595,9 @@ data class DynamicItem(
                     title = modulePgc.title,
                     epid = modulePgc.epid,
                     seasonId = modulePgc.seasonId,
-                    cover = modulePgc.cover
+                    cover = modulePgc.cover,
+                    aid = 0,
+                    cid = 0
                 )
 
             fun fromModulePgc(modulePgc: bilibili.app.dynamic.v2.MdlDynPGC): DynamicPgcModule {
@@ -601,7 +605,9 @@ data class DynamicItem(
                     title = modulePgc.title,
                     epid = modulePgc.epid.toInt(),
                     seasonId = modulePgc.seasonId.toInt(),
-                    cover = modulePgc.cover
+                    cover = modulePgc.cover,
+                    aid = modulePgc.aid,
+                    cid = modulePgc.cid
                 )
             }
         }

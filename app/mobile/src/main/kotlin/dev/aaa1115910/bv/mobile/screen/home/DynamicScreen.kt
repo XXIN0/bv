@@ -67,10 +67,22 @@ fun DynamicScreen(
         logger.fInfo { "click dynamic type: ${dynamicItem.type}" }
         when (dynamicItem.type) {
             DynamicType.Av -> {
+                println("=== ${dynamicItem.video} ===")
                 VideoPlayerActivity.actionStart(
                     context = context,
                     aid = dynamicItem.video!!.aid,
-                    fromSeason = dynamicItem.video!!.seasonId != 0
+                    fromSeason = dynamicItem.video!!.seasonId != null
+                )
+            }
+
+            DynamicType.Pgc -> {
+                VideoPlayerActivity.actionStart(
+                    context = context,
+                    //aid = dynamicItem.pgc!!.epid,
+                    aid = 0,
+                    fromSeason = true,
+                    epid = dynamicItem.pgc!!.epid,
+                    seasonId = dynamicItem.pgc!!.seasonId,
                 )
             }
 

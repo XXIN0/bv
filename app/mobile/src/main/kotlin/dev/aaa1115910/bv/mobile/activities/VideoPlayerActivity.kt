@@ -11,16 +11,17 @@ import androidx.lifecycle.lifecycleScope
 import com.kuaishou.akdanmaku.render.SimpleRenderer
 import com.kuaishou.akdanmaku.ui.DanmakuPlayer
 import dev.aaa1115910.biliapi.entity.ApiType
+import dev.aaa1115910.biliapi.http.BiliHttpApi
 import dev.aaa1115910.bv.R
 import dev.aaa1115910.bv.entity.PlayerType
 import dev.aaa1115910.bv.mobile.screen.VideoPlayerScreen
 import dev.aaa1115910.bv.mobile.theme.BVMobileTheme
-import dev.aaa1115910.bv.viewmodel.CommentViewModel
 import dev.aaa1115910.bv.player.VideoPlayerOptions
 import dev.aaa1115910.bv.player.impl.exo.ExoPlayerFactory
 import dev.aaa1115910.bv.util.Prefs
 import dev.aaa1115910.bv.util.fInfo
 import dev.aaa1115910.bv.util.toast
+import dev.aaa1115910.bv.viewmodel.CommentViewModel
 import dev.aaa1115910.bv.viewmodel.VideoPlayerV3ViewModel
 import dev.aaa1115910.bv.viewmodel.video.VideoDetailViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -31,11 +32,21 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class VideoPlayerActivity : ComponentActivity() {
     companion object {
-        fun actionStart(context: Context, aid: Long, fromSeason: Boolean = false) {
+        fun actionStart(
+            context: Context,
+            aid: Long,
+            //cid: Long,
+            fromSeason: Boolean = false,
+            epid: Int? = null,
+            seasonId: Int? = null,
+        ) {
             context.startActivity(
                 Intent(context, VideoPlayerActivity::class.java).apply {
                     putExtra("aid", aid)
+                    //putExtra("cid", cid)
                     putExtra("fromSeason", fromSeason)
+                    epid?.let { putExtra("epid", it) }
+                    seasonId?.let { putExtra("seasonId", it) }
                 }
             )
         }
@@ -89,23 +100,43 @@ class VideoPlayerActivity : ComponentActivity() {
     }
 
     private fun parseIntent() {
-        val aid = intent.getLongExtra("aid", 0)
-
-        commentViewModel.commentType = 1
-        commentViewModel.commentId = aid
+        var aid = intent.getLongExtra("aid", 0)
+        var cid = intent.getLongExtra("cid", 0)
+        val fromSeason = intent.getBooleanExtra("fromSeason", false)
+        val epid = intent.getIntExtra("epid", 0)
+        val seasonId = intent.getIntExtra("seasonId", 0)
 
         lifecycleScope.launch(Dispatchers.IO) {
+            if (aid == 0L && cid == 0L) {
+                runCatching {
+                    val acid = BiliHttpApi.getAidCidByEpid(epid)!!
+                    aid = acid.first
+                    cid = acid.second
+                }.onFailure {
+                    logger.fInfo { "get avid & cid by epid failed: ${it.stackTraceToString()}" }
+                    withContext(Dispatchers.Main) {
+                        it.message?.toast(this@VideoPlayerActivity)
+                    }
+                }
+            }
+
+            commentViewModel.commentType = 1
+            commentViewModel.commentId = aid
+
             runCatching {
-                videoDetailViewModel.loadDetail(aid)
+                videoDetailViewModel.loadDetail(aid, fromSeason)
             }.onFailure {
                 withContext(Dispatchers.Main) {
                     it.message?.toast(this@VideoPlayerActivity)
                 }
             }
             runCatching {
+                playerViewModel.fromSeason = fromSeason
                 playerViewModel.loadPlayUrl(
                     avid = videoDetailViewModel.videoDetail?.aid ?: 0,
-                    cid = videoDetailViewModel.videoDetail?.cid ?: 0
+                    cid = videoDetailViewModel.videoDetail?.cid ?: 0,
+                    epid = epid.takeIf { it != 0 },
+                    seasonId = seasonId.takeIf { it != 0 }
                 )
             }.onFailure {
                 withContext(Dispatchers.Main) {

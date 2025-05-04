@@ -184,6 +184,7 @@ class VideoPlayerV3ViewModel(
         logger.fInfo { "Load play url: [av=$avid, cid=$cid, preferApi=$preferApi, proxyArea=$proxyArea]" }
         withContext(Dispatchers.Main) { loadState = RequestState.Ready }
         logger.fInfo { "Set request state: ready" }
+        logger.fInfo { "fromSeason: $fromSeason" }
         runCatching {
             val playData = if (fromSeason) {
                 videoPlayRepository.getPgcPlayData(

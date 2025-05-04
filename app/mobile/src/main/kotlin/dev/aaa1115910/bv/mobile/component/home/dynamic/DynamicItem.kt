@@ -908,7 +908,9 @@ private val exampleDynamicPgcData = DynamicItem(
         cover = "",
         title = "title",
         seasonId = 3,
-        epid = 3
+        epid = 3,
+        aid = 0,
+        cid = 0
     ),
     footer = exampleFooterData
 )
