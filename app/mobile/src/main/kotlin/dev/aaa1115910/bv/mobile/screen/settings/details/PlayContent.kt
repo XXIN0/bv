@@ -8,10 +8,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import de.schnettler.datastore.manager.DataStoreManager
 import dev.aaa1115910.bv.dataStore
-import dev.aaa1115910.bv.player.entity.Audio
-import dev.aaa1115910.bv.player.entity.Resolution
 import dev.aaa1115910.bv.mobile.component.preferences.RadioPreferenceItem
 import dev.aaa1115910.bv.mobile.component.preferences.getOrDefault
+import dev.aaa1115910.bv.player.entity.Audio
+import dev.aaa1115910.bv.player.entity.Resolution
+import dev.aaa1115910.bv.player.entity.VideoCodec
 import dev.aaa1115910.bv.util.PrefKeys
 
 @Composable
@@ -30,6 +31,14 @@ fun PlayContent(
             items = Resolution.entries.associate { it.code to it.getDisplayName(context) },
             prefReq = PrefKeys.prefDefaultQualityRequest,
             summary = Resolution.fromCode(prefs.getOrDefault(PrefKeys.prefDefaultQualityRequest))
+                ?.getDisplayName(context) ?: ""
+        )
+        RadioPreferenceItem(
+            title = "默认视频编码",
+            items = listOf(VideoCodec.AVC, VideoCodec.HEVC, VideoCodec.AV1)
+                .associate { it.codecId to it.getDisplayName(context) },
+            prefReq = PrefKeys.prefDefaultVideoCodecRequest,
+            summary = VideoCodec.fromCode(prefs.getOrDefault(PrefKeys.prefDefaultVideoCodecRequest))
                 ?.getDisplayName(context) ?: ""
         )
         RadioPreferenceItem(

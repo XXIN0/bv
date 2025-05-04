@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -17,6 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import de.schnettler.datastore.manager.DataStoreManager
@@ -54,6 +56,7 @@ fun <T> RadioPreferenceItem(
     RadioListDialog(
         show = showRadioDialog,
         onHideDialog = { showRadioDialog = false },
+        title = title,
         values = items,
         selectedValue = selectedValue,
         onSelectValue = { onSelectedChange(it) }
@@ -100,6 +103,7 @@ private fun <T> RadioListDialog(
     modifier: Modifier = Modifier,
     show: Boolean,
     onHideDialog: () -> Unit,
+    title: String,
     values: Map<T, String>,
     selectedValue: T,
     onSelectValue: (T) -> Unit,
@@ -109,6 +113,7 @@ private fun <T> RadioListDialog(
             modifier = modifier,
             onDismissRequest = onHideDialog,
             confirmButton = { },
+            title = { Text(text = title) },
             text = {
                 LazyColumn(
                     modifier = Modifier.heightIn(max = 300.dp)
@@ -146,6 +151,9 @@ fun RadioListItem(
                 selected = selected,
                 onClick = onClick
             )
-        }
+        },
+        colors =ListItemDefaults.colors(
+            containerColor = Color.Transparent
+        )
     )
 }

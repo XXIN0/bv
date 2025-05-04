@@ -30,7 +30,7 @@ fun SettingsDetails(
         topBar = {
             LargeTopAppBar(
                 title = {
-                    Text(text = selectedSettings?.name ?: "NaN")
+                    Text(text = selectedSettings?.displayName ?: "NaN")
                 },
                 navigationIcon = {
                     if (showNavBack) {

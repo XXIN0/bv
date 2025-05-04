@@ -20,6 +20,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,10 +40,7 @@ fun SettingsCategories(
     singleList: Boolean
 ) {
     val containerColor =
-        if (singleList) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surface.let {
-            val deepening = 0.5f
-            Color(it.red * deepening, it.green * deepening, it.blue * deepening)
-        }
+        if (singleList) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceContainer
 
     Scaffold(
         modifier = modifier,
@@ -68,10 +66,16 @@ fun SettingsCategories(
             modifier = Modifier.padding(innerPadding),
             contentPadding = PaddingValues(horizontal = 12.dp)
         ) {
-            items(MobileSettings.entries) { item ->
+            val settings = listOf(
+                MobileSettings.Play,
+                MobileSettings.Advance,
+                MobileSettings.About,
+                MobileSettings.Debug
+            )
+            items(settings) { item ->
                 SettingItem(
                     modifier = Modifier,
-                    text = item.name,
+                    text = item.displayName,
                     selected = selectedSettings == item,
                     onClick = {
                         onSelectedSettings(item)
@@ -91,9 +95,12 @@ private fun SettingItem(
     onClick: () -> Unit = {},
     defaultContainerColor: Color = MaterialTheme.colorScheme.surface
 ) {
+    val containerColor = if (selected) MaterialTheme.colorScheme.primary else defaultContainerColor
     val listItemColors = ListItemDefaults.colors(
-        containerColor = if (selected) MaterialTheme.colorScheme.primaryContainer else defaultContainerColor
+        containerColor = containerColor,
+        headlineColor = contentColorFor(containerColor)
     )
+
     ListItem(
         modifier = modifier
             .clip(MaterialTheme.shapes.medium)
