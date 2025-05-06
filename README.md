@@ -35,7 +35,7 @@ BV 是一款 [哔哩哔哩](https://www.bilibili.com) 的第三方 `Android` 应
 3. 增加快捷调整倍速播放，现在的调整路径有点长
 
 # 安装
-### [Release](https://www.bilibili.com)
+### [Release](https://github.com/Leelion96/bv/releases)
 
 # License
 [MIT](LICENSE) © aaa1115910
