@@ -13,7 +13,6 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import dev.aaa1115910.bv.BVApp.Companion.context
 import dev.aaa1115910.bv.R
 import dev.aaa1115910.bv.activities.settings.SettingsActivity
 import dev.aaa1115910.bv.activities.user.*
@@ -143,6 +142,7 @@ private fun UserContent(
     showUserPanelLambda:()-> Boolean,
     onHide: () -> Unit
 ){
+    val context = LocalContext.current
     val showUserPanel = showUserPanelLambda()
     AnimatedVisibility(
         modifier = modifier,
