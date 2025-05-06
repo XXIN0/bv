@@ -3,45 +3,23 @@
 <img src="app/src/main/res/drawable/ic_banner.webp" style="border-radius: 24px; margin-top: 32px;"/>
 
 # BV
+## Best Video
 
-~~Bug Video~~
-
-[![GitHub Release Release](https://img.shields.io/endpoint?url=https%3A%2F%2Fbadge.versions.bv.aaa1115910.dev%2Fgithub%3Fprerelease%3Dfalse)](https://github.com/aaa1115910/bv/releases?q=prerelease%3Afalse)
-[![GitHub Release Pre-Release](https://img.shields.io/endpoint?url=https%3A%2F%2Fbadge.versions.bv.aaa1115910.dev%2Fgithub%3Fprerelease%3Dtrue)](https://github.com/aaa1115910/bv/releases?q=prerelease%3Atrue)
-
-[![Workflow Release](https://github.com/aaa1115910/bv/actions/workflows/release.yml/badge.svg)](https://github.com/aaa1115910/bv/actions/workflows/release.yml)
-[![Workflow Alpha](https://github.com/aaa1115910/bv/actions/workflows/alpha.yml/badge.svg)](https://github.com/aaa1115910/bv/actions/workflows/alpha.yml)
 [![Android Sdk Require](https://img.shields.io/badge/Android-5.0%2B-informational?logo=android)](https://apilevels.com/#:~:text=Jetpack%20Compose%20requires%20a%20minSdk%20of%2021%20or%20higher)
 [![GitHub](https://img.shields.io/github/license/aaa1115910/bv)](https://github.com/aaa1115910/bv)
 
-**BV 不支持在中国大陆地区内使用，如有相关使用需求请使用 [云视听小电视](https://app.bilibili.com)**
-
+# 该改版是给带键鼠的安卓设备使用的，严禁tv端使用，若有tv端使用者，请在24小时内删除否则后果自负,若有tv端使用需求，请下载官方小电视！[![云视听小电视](https://img.shields.io/badge/bilibili-下载-informational?logo=bilibili)](https://app.bilibili.com)
 </div>
 
 ---
-BV ~~(Bug Video)~~ 是一款 [哔哩哔哩](https://www.bilibili.com) 的第三方 `Android TV`
-应用，使用 `Jetpack Compose` 开发，支持 `Android 5.0+`
+BV 是一款 [哔哩哔哩](https://www.bilibili.com) 的第三方 `Android` 应用，使用 `Jetpack Compose` 开发，支持 `Android 5.0+`
 
-都是随心乱写的代码，能跑就行。
+# 特色
+该改版是基于原bv，去除网络检测（使用者后果自负），并基于当前 UI 和交互进行优化，包括：
+Todo
 
-## 特色
+# 安装
+Todo
 
-- :bug: 丰富多样的 Bug
-- :children_crossing: 反人类设计
-- :zap: 卡卡卡卡卡
-- :art: 异样审美
-- :disappointed: 巨难用
-
-## 安装
-
-### Release
-
-- [Github Release](https://github.com/aaa1115910/bv/releases?q=prerelease%3Afalse)
-
-### Alpha
-
-- [Github Release](https://github.com/aaa1115910/bv/releases?q=prerelease%3Atrue)
-
-## License
-
+# License
 [MIT](LICENSE) © aaa1115910
