@@ -18,6 +18,7 @@ BV 是一款 [哔哩哔哩](https://www.bilibili.com) 的第三方 `Android` 应
 
 # 修改
 主要在原bv的基础上做了一些符合我个人喜好的修改，包括（只有标Done的部分才是已经做完的，其它都是画饼）：
+![screenshots.webp](screenshots.webp)
 
 ### UI变更
 1. 移除首页左侧的抽屉展开效果，避免展开时占用首页信息流的展示（Done✅）
