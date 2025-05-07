@@ -79,7 +79,8 @@ fun DynamicsScreen(
                             play = item.play,
                             danmaku = item.danmaku,
                             upName = item.author,
-                            time = item.duration * 1000L
+                            time = item.duration * 1000L,
+                            pubTime = item.pubTime
                         ),
                         onClick = { onClickVideo(item) },
                         onFocus = { currentFocusedIndex = index }

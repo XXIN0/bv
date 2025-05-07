@@ -114,7 +114,8 @@ fun SmallVideoCardContent(
                 translationY = infoOffsetY
             },
             title = data.title,
-            upName = data.upName
+            upName = data.upName,
+            pubTime = data.pubTime
         )
     }
 }
@@ -257,11 +258,12 @@ fun CardCover(
 private fun ColumnScope.CardInfo(
     modifier: Modifier = Modifier,
     title: String,
-    upName: String
+    upName: String,
+    pubTime: String?
 ) {
-    Column(modifier = modifier) {
+    Column(modifier = modifier.fillMaxWidth()) {
         Text(
-            modifier = modifier,
+            modifier = Modifier,
             text = title,
             style = MaterialTheme.typography.titleMedium,
             maxLines = 3,
@@ -270,17 +272,28 @@ private fun ColumnScope.CardInfo(
         )
         Spacer(modifier = Modifier.height(4.dp))
         Row(
-            modifier = modifier,
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             UpIcon()
             Text(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 2.dp),
                 text = upName,
                 style = MaterialTheme.typography.labelMedium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
+            pubTime?.let {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.labelMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Visible
+                )
+            }
         }
     }
 }
@@ -292,10 +305,11 @@ fun SmallVideoCardWithoutFocusPreview() {
         avid = 0,
         title = "震惊！太震惊了！真的是太震惊了！我的天呐！真TMD震惊！",
         cover = "http://i2.hdslb.com/bfs/archive/af17fc07b8f735e822563cc45b7b5607a491dfff.jpg",
-        upName = "bishi",
+        upName = "震惊！太震惊了！真的是太震惊了！我的天呐！真TMD震惊！",
         play = 2333,
         danmaku = 666,
-        time = 2333 * 1000
+        time = 2333 * 1000,
+        pubTime = "3小时前"
     )
     BVTheme {
         Surface(
@@ -319,7 +333,8 @@ fun SmallVideoCardWithFocusPreview() {
         upName = "bishi",
         play = 2333,
         danmaku = 666,
-        time = 2333 * 1000
+        time = 2333 * 1000,
+        pubTime = "3小时前"
     )
     BVTheme {
         Surface(
@@ -345,7 +360,8 @@ fun SmallVideoCardsPreview() {
         upName = "bishi",
         play = 2333,
         danmaku = 666,
-        time = 2333 * 1000
+        time = 2333 * 1000,
+        pubTime = "3小时前"
     )
     BVTheme {
         LazyVerticalGrid(

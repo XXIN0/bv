@@ -49,6 +49,7 @@ data class DynamicVideoData(
  * @property duration 视频时长，单位秒
  * @property play 视频播放量
  * @property danmaku 视频弹幕数
+ * @property pubTime 发布时间
  */
 data class DynamicVideo(
     val aid: Long,
@@ -61,7 +62,8 @@ data class DynamicVideo(
     val author: String,
     val duration: Int,
     val play: Int,
-    val danmaku: Int
+    val danmaku: Int,
+    val pubTime: String? = null,
 ) {
     companion object {
         fun fromDynamicVideoItem(item: dev.aaa1115910.biliapi.http.entity.dynamic.DynamicItem): DynamicVideo {
@@ -77,7 +79,8 @@ data class DynamicVideo(
                 author = author.name,
                 duration = convertStringTimeToSeconds(archive.durationText),
                 play = convertStringPlayCountToNumberPlayCount(archive.stat.play),
-                danmaku = convertStringPlayCountToNumberPlayCount(archive.stat.danmaku)
+                danmaku = convertStringPlayCountToNumberPlayCount(archive.stat.danmaku),
+                pubTime = author.pubTime
             )
         }
 
