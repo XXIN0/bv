@@ -59,10 +59,12 @@ fun AboutSetting(
             )
             Spacer(modifier = Modifier.height(12.dp))
             Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = stringResource(R.string.about_statement)
+                    text = stringResource(R.string.about_statement),
+                    modifier = Modifier.padding(horizontal = 48.dp)
                 )
                 Text(
                     text = stringResource(
