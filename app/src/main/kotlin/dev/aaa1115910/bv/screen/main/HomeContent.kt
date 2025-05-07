@@ -17,6 +17,7 @@ import dev.aaa1115910.bv.component.TopNav
 import dev.aaa1115910.bv.screen.main.home.DynamicsScreen
 import dev.aaa1115910.bv.screen.main.home.PopularScreen
 import dev.aaa1115910.bv.screen.main.home.RecommendScreen
+import dev.aaa1115910.bv.util.Prefs
 import dev.aaa1115910.bv.util.fInfo
 import dev.aaa1115910.bv.util.requestFocus
 import dev.aaa1115910.bv.viewmodel.UserViewModel
@@ -47,14 +48,21 @@ fun HomeContent(
     var focusOnContent by remember { mutableStateOf(false) }
     var topNavHasFocus by remember { mutableStateOf(false) }
 
-    // 从全局状态获取上次选择的标签位置，如果没有则默认为Recommend
+    // 已登录的话，优先选择动态Tab
+    val initialSelectedTab = if (Prefs.isLogin) {
+        HomeTopNavItem.Dynamics
+    } else {
+        HomeTopNavItem.Recommend
+    }
+
+    // 从全局状态获取上次选择的标签位置，如果没有则默认为Dynamics
     // 将这个值提到可组合函数的顶部，避免在重组时重新计算
     val initialSelectedTabIndex = currentSelectedTabs[DrawerItem.Home]
     var selectedTab by remember(initialSelectedTabIndex) {
         mutableStateOf(
             initialSelectedTabIndex
                 ?.let { HomeTopNavItem.entries.getOrNull(it) }
-                ?: HomeTopNavItem.Recommend
+                ?: initialSelectedTab
         )
     }
     
@@ -120,6 +128,12 @@ fun HomeContent(
         }
     }
 
+    // 已登录的话，首页 TAB 会从“推荐-热门-动态”，变更顺序为“动态-推荐-热门”（Done✅）
+    val items = if (Prefs.isLogin) {
+        listOf(HomeTopNavItem.Dynamics, HomeTopNavItem.Recommend, HomeTopNavItem.Popular)
+    } else {
+        listOf(HomeTopNavItem.Recommend, HomeTopNavItem.Popular, HomeTopNavItem.Dynamics)
+    }
     Scaffold(
         modifier = modifier,
         topBar = {
@@ -128,7 +142,7 @@ fun HomeContent(
                     .focusRequester(navFocusRequester)
                     .padding(end = 80.dp)
                     .onFocusChanged { topNavHasFocus = it.hasFocus },
-                items = HomeTopNavItem.entries,
+                items = items,
                 isLargePadding = !focusOnContent && currentListOnTop,
                 initialSelectedItem = selectedTab,
                 onSelectedChanged = { nav ->
