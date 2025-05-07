@@ -64,7 +64,7 @@ fun DrawerContent(
 
     Column(
         modifier = modifier
-            .width(60.dp)
+            .width(44.dp)
             .fillMaxHeight()
             .padding(vertical = 12.dp)
             .onPreviewKeyEvent { keyEvent ->

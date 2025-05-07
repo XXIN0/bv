@@ -5,11 +5,15 @@ import android.content.Intent
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusTarget
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -95,6 +99,7 @@ fun MainScreen(
             modifier = Modifier
                 .fillMaxHeight()
                 .background(Color(0xFF1A1A1A))
+                .padding(start = 8.dp)
         ) {
             // 使用Column加入普通DrawerContent
             DrawerContent(
@@ -113,42 +118,53 @@ fun MainScreen(
             )
         }
 
+        // 占位的区域，用来让内容页向左返回时先被这个占位抢占到焦点，然后再分发焦点到对应左侧栏位置
+        LeftPlaceHolder {
+            drawerItemFocusRequesters[selectedDrawerItem]?.requestFocus()
+        }
+
         // 内容区域
         Box(modifier = Modifier.weight(1f)) {
-            AnimatedContent(
-                targetState = selectedDrawerItem,
-                label = "main animated content",
-                transitionSpec = {
-                    val coefficient = 20
-                    if (targetState.ordinal < initialState.ordinal) {
-                        fadeIn() + slideInVertically { -it / coefficient } togetherWith
+            Column {
+                // 占位的区域，用来让内容页向左返回时先被这个占位抢占到焦点，然后再分发焦点到对应左侧栏位置
+                TopPlaceHolder{
+                    drawerItemFocusRequesters[selectedDrawerItem]?.requestFocus()
+                }
+                AnimatedContent(
+                    targetState = selectedDrawerItem,
+                    label = "main animated content",
+                    transitionSpec = {
+                        val coefficient = 20
+                        if (targetState.ordinal < initialState.ordinal) {
+                            fadeIn() + slideInVertically { -it / coefficient } togetherWith
                                 fadeOut() + slideOutVertically { it / coefficient }
-                    } else {
-                        fadeIn() + slideInVertically { it / coefficient } togetherWith
+                        } else {
+                            fadeIn() + slideInVertically { it / coefficient } togetherWith
                                 fadeOut() + slideOutVertically { -it / coefficient }
+                        }
+                    }
+                ) { screen ->
+                    when (screen) {
+                        DrawerItem.Home -> HomeContent(
+                            contentFocusRequester = mainFocusRequester,
+                            navFocusRequester = mainNavFocusRequester
+                        )
+                        DrawerItem.UGC -> UgcContent(contentFocusRequester = ugcFocusRequester)
+                        DrawerItem.PGC -> PgcContent(contentFocusRequester = pgcFocusRequester)
+                        DrawerItem.Search -> SearchInputScreen(defaultFocusRequester = searchFocusRequester)
+                        DrawerItem.Settings -> SettingsScreen(defaultFocusRequester = settingFocusRequester)
+                        else -> {}
                     }
                 }
-            ) { screen ->
-                when (screen) {
-                    DrawerItem.Home -> HomeContent(
-                        contentFocusRequester = mainFocusRequester,
-                        navFocusRequester = mainNavFocusRequester
-                    )
-                    DrawerItem.UGC -> UgcContent(contentFocusRequester = ugcFocusRequester)
-                    DrawerItem.PGC -> PgcContent(contentFocusRequester = pgcFocusRequester)
-                    DrawerItem.Search -> SearchInputScreen(defaultFocusRequester = searchFocusRequester)
-                    DrawerItem.Settings -> SettingsScreen(defaultFocusRequester = settingFocusRequester)
-                    else -> {}
-                }
             }
-
-            UserContent(
-                userViewModel = userViewModel,
-                showUserPanelLambda = { showUserPanel },
-                onHide = { showUserPanel = false }
-            )
         }
     }
+
+    UserContent(
+        userViewModel = userViewModel,
+        showUserPanelLambda = { showUserPanel },
+        onHide = { showUserPanel = false }
+    )
 }
 
 @Composable
@@ -208,4 +224,45 @@ private fun UserContent(
             }
         }
     }
+}
+
+@Composable
+private fun LeftPlaceHolder(modifier: Modifier = Modifier, onFocus: () -> Unit) {
+    Box(
+        modifier = modifier
+            .width(13.dp)
+            .fillMaxHeight()
+            .onFocusChanged { focusState ->
+                if (focusState.hasFocus) {
+                    onFocus.invoke()
+                }
+            }
+            .background(MaterialTheme.colorScheme.background)
+            .focusTarget()
+            .focusable()
+    ) {
+        Box(
+            modifier = Modifier
+                .width(8.dp)
+                .fillMaxHeight()
+                .background(Color(0xFF1A1A1A))
+        )
+    }
+}
+
+@Composable
+private fun TopPlaceHolder(modifier: Modifier = Modifier, onFocus: () -> Unit) {
+    Box(
+        modifier = modifier
+            .height(13.dp)
+            .fillMaxWidth()
+            .onFocusChanged { focusState ->
+                if (focusState.hasFocus) {
+                    onFocus.invoke()
+                }
+            }
+            .background(MaterialTheme.colorScheme.background)
+            .focusTarget()
+            .focusable()
+    )
 }

@@ -49,7 +49,12 @@ fun TopNav(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(12.dp, verticalPadding),
+            .padding(
+                start = 0.dp,
+                end = 12.dp,
+                top = verticalPadding - 12.dp,
+                bottom = verticalPadding
+            ),
         horizontalArrangement = Arrangement.Center
     ) {
         TabRow(

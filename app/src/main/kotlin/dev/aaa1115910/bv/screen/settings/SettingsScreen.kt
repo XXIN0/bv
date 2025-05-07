@@ -67,7 +67,7 @@ fun SettingsScreen(
             Box(
                 modifier = Modifier.padding(
                     start = 48.dp,
-                    top = 24.dp,
+                    top = 12.dp,
                     bottom = 8.dp,
                     end = 48.dp
                 )
