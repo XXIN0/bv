@@ -127,10 +127,6 @@ fun SettingsNav(
         if (isFocusing) focusRequester.requestFocus(scope)
     }
 
-    LaunchedEffect(Unit) {
-        focusRequester.requestFocus(scope)
-    }
-
     LazyColumn(
         modifier = modifier,
         contentPadding = PaddingValues(24.dp),

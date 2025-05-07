@@ -64,6 +64,7 @@ fun MainScreen(
                     // 未登录情况下只能获取标题栏的焦点而不能是内容的
                     mainNavFocusRequester.requestFocus()
                 } else {
+                    // todo:如果没加载到内容应该页不要获取这里的焦点
                     mainFocusRequester.requestFocus()
                 }
             }
