@@ -114,6 +114,10 @@ fun UgcContent(
                         UgcTopNavItem.Sports -> sportsState.reloadAll()
                         UgcTopNavItem.Animal -> animalState.reloadAll()
                     }
+                },
+                onLeftKeyEvent = {
+                    // 顶部栏最左侧按左键时，跳转到左侧导航栏
+                    drawerItemFocusRequesters[DrawerItem.UGC]?.requestFocus()
                 }
             )
         }

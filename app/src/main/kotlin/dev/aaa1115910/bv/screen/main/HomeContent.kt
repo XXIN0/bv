@@ -157,6 +157,10 @@ fun HomeContent(
                             scope.launch(Dispatchers.IO) { dynamicViewModel.loadMore() }
                         }
                     }
+                },
+                onLeftKeyEvent = {
+                    // 顶部栏最左侧按左键时，跳转到左侧导航栏
+                    drawerItemFocusRequesters[DrawerItem.Home]?.requestFocus()
                 }
             )
         }

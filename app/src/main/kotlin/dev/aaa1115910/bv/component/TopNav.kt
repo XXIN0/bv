@@ -16,6 +16,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.LocalContentColor
@@ -28,6 +29,8 @@ import dev.aaa1115910.biliapi.entity.pgc.PgcType
 import dev.aaa1115910.biliapi.entity.ugc.UgcType
 import dev.aaa1115910.bv.BVApp
 import dev.aaa1115910.bv.util.getDisplayName
+import dev.aaa1115910.bv.util.isDpadLeft
+import dev.aaa1115910.bv.util.isKeyDown
 
 @Composable
 fun TopNav(
@@ -35,7 +38,8 @@ fun TopNav(
     items: List<TopNavItem>,
     isLargePadding: Boolean,
     onSelectedChanged: (TopNavItem) -> Unit = {},
-    onClick: (TopNavItem) -> Unit = {}
+    onClick: (TopNavItem) -> Unit = {},
+    onLeftKeyEvent: () -> Unit = {}
 ) {
     val focusRestorerModifiers = createCustomInitialFocusRestorerModifiers()
 
@@ -54,7 +58,15 @@ fun TopNav(
     ) {
         TabRow(
             modifier = Modifier
-                .then(focusRestorerModifiers.parentModifier),
+                .then(focusRestorerModifiers.parentModifier)
+                .onPreviewKeyEvent { keyEvent ->
+                    // 只有在最左边的选项，按左键时才向外传递事件
+                    if (keyEvent.isDpadLeft() && keyEvent.isKeyDown() && selectedTabIndex == 0) {
+                        onLeftKeyEvent()
+                        return@onPreviewKeyEvent true
+                    }
+                    false
+                },
             selectedTabIndex = selectedTabIndex,
             separator = { Spacer(modifier = Modifier.width(12.dp)) },
         ) {
