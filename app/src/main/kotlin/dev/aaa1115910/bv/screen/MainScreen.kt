@@ -14,12 +14,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import dev.aaa1115910.bv.R
-import dev.aaa1115910.bv.activities.settings.SettingsActivity
 import dev.aaa1115910.bv.activities.user.*
 import dev.aaa1115910.bv.component.HomeTopNavItem
 import dev.aaa1115910.bv.component.UserPanel
 import dev.aaa1115910.bv.screen.main.*
 import dev.aaa1115910.bv.screen.search.SearchInputScreen
+import dev.aaa1115910.bv.screen.settings.SettingsScreen
 import dev.aaa1115910.bv.util.Prefs
 import dev.aaa1115910.bv.util.fException
 import dev.aaa1115910.bv.util.fInfo
@@ -44,6 +44,7 @@ fun MainScreen(
     val ugcFocusRequester = remember { FocusRequester() }
     val pgcFocusRequester = remember { FocusRequester() }
     val searchFocusRequester = remember { FocusRequester() }
+    val settingFocusRequester = remember { FocusRequester() }
 
     val handleBack = {
         val currentTime = System.currentTimeMillis()
@@ -69,6 +70,7 @@ fun MainScreen(
             DrawerItem.UGC -> ugcFocusRequester.requestFocus()
             DrawerItem.PGC -> pgcFocusRequester.requestFocus()
             DrawerItem.Search -> searchFocusRequester.requestFocus()
+            DrawerItem.Settings -> settingFocusRequester.requestFocus()
             else -> {}
         }
     }
@@ -97,9 +99,8 @@ fun MainScreen(
             DrawerContent(
                 isLogin = userViewModel.isLogin,
                 avatar = userViewModel.face,
-                onDrawerItemChanged = { selectedDrawerItem = it },
-                onOpenSettings = {
-                    context.startActivity(Intent(context, SettingsActivity::class.java))
+                onDrawerItemChanged = {
+                    selectedDrawerItem = it
                 },
                 onShowUserPanel = {
                     showUserPanel = true
@@ -135,6 +136,7 @@ fun MainScreen(
                     DrawerItem.UGC -> UgcContent(contentFocusRequester = ugcFocusRequester)
                     DrawerItem.PGC -> PgcContent(contentFocusRequester = pgcFocusRequester)
                     DrawerItem.Search -> SearchInputScreen(defaultFocusRequester = searchFocusRequester)
+                    DrawerItem.Settings -> SettingsScreen(defaultFocusRequester = settingFocusRequester)
                     else -> {}
                 }
             }

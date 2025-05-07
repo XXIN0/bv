@@ -1,26 +1,12 @@
 package dev.aaa1115910.bv.screen.settings
 
 import android.content.Context
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -39,23 +25,18 @@ import androidx.tv.material3.ListItem
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import dev.aaa1115910.bv.R
-import dev.aaa1115910.bv.screen.settings.content.AboutSetting
-import dev.aaa1115910.bv.screen.settings.content.ApiSetting
-import dev.aaa1115910.bv.screen.settings.content.AudioSetting
-import dev.aaa1115910.bv.screen.settings.content.InfoSetting
-import dev.aaa1115910.bv.screen.settings.content.NetworkSetting
-import dev.aaa1115910.bv.screen.settings.content.OtherSetting
-import dev.aaa1115910.bv.screen.settings.content.PlayerTypeSetting
-import dev.aaa1115910.bv.screen.settings.content.ResolutionSetting
-import dev.aaa1115910.bv.screen.settings.content.StorageSetting
-import dev.aaa1115910.bv.screen.settings.content.UISetting
-import dev.aaa1115910.bv.screen.settings.content.VideoCodecSetting
+import dev.aaa1115910.bv.screen.main.DrawerItem
+import dev.aaa1115910.bv.screen.main.drawerItemFocusRequesters
+import dev.aaa1115910.bv.screen.settings.content.*
 import dev.aaa1115910.bv.ui.theme.BVTheme
+import dev.aaa1115910.bv.util.isDpadLeft
+import dev.aaa1115910.bv.util.isKeyDown
 import dev.aaa1115910.bv.util.requestFocus
 
 @Composable
 fun SettingsScreen(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    defaultFocusRequester: FocusRequester,
 ) {
     val showLargeTitle by remember { derivedStateOf { true } }
     val titleFontSize by animateFloatAsState(
@@ -66,8 +47,22 @@ fun SettingsScreen(
     var currentMenu by remember { mutableStateOf(SettingsMenuNavItem.Resolution) }
     var focusInNav by remember { mutableStateOf(false) }
 
+    val scope = rememberCoroutineScope()
+    BackHandler {
+        drawerItemFocusRequesters[DrawerItem.Settings]?.requestFocus(scope)
+    }
+
     Scaffold(
-        modifier = modifier,
+        modifier = modifier
+            .focusRequester(defaultFocusRequester)
+            .onPreviewKeyEvent { keyEvent ->
+                // 只有在最左边的选项，按左键时才向外传递事件
+                if (keyEvent.isDpadLeft() && keyEvent.isKeyDown()) {
+                    drawerItemFocusRequesters[DrawerItem.Settings]?.requestFocus(scope)
+                    return@onPreviewKeyEvent true
+                }
+                false
+            },
         topBar = {
             Box(
                 modifier = Modifier.padding(
