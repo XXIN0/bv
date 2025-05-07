@@ -45,7 +45,6 @@ fun HomeContent(
     val dynamicState = rememberLazyListState()
 
     var focusOnContent by remember { mutableStateOf(false) }
-    var hasFocus by remember { mutableStateOf(false) }
     var topNavHasFocus by remember { mutableStateOf(false) }
 
     // 从全局状态获取上次选择的标签位置，如果没有则默认为Recommend
@@ -105,14 +104,7 @@ fun HomeContent(
         }
     }
 
-    LaunchedEffect(hasFocus) {
-        if (hasFocus) {
-            navFocusRequester.requestFocus()
-        }
-    }
-
     BackHandler(focusOnContent || topNavHasFocus) {
-        logger.fInfo { "onFocusBackToNav" }
         if (topNavHasFocus) {
             drawerItemFocusRequesters[DrawerItem.Home]?.requestFocus()
             return@BackHandler
@@ -129,8 +121,7 @@ fun HomeContent(
     }
 
     Scaffold(
-        modifier = modifier
-            .onFocusChanged { hasFocus = it.hasFocus },
+        modifier = modifier,
         topBar = {
             TopNav(
                 modifier = Modifier
