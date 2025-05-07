@@ -47,6 +47,8 @@ fun HomeContent(
     var selectedTab by remember { mutableStateOf(HomeTopNavItem.Recommend) }
     var focusOnContent by remember { mutableStateOf(false) }
     var hasFocus by remember { mutableStateOf(false) }
+    var topNavHasFocus by remember { mutableStateOf(false) }
+    
     val currentListOnTop by remember {
         derivedStateOf {
             with(
@@ -94,8 +96,12 @@ fun HomeContent(
         }
     }
 
-    BackHandler(focusOnContent) {
+    BackHandler(focusOnContent || topNavHasFocus) {
         logger.fInfo { "onFocusBackToNav" }
+        if (topNavHasFocus) {
+            drawerItemFocusRequesters[DrawerItem.Home]?.requestFocus()
+            return@BackHandler
+        }
         navFocusRequester.requestFocus(scope)
         // scroll to top
         scope.launch(Dispatchers.Main) {
@@ -108,13 +114,14 @@ fun HomeContent(
     }
 
     Scaffold(
-        modifier = Modifier
+        modifier = modifier
             .onFocusChanged { hasFocus = it.hasFocus },
         topBar = {
             TopNav(
                 modifier = Modifier
                     .focusRequester(navFocusRequester)
-                    .padding(end = 80.dp),
+                    .padding(end = 80.dp)
+                    .onFocusChanged { topNavHasFocus = it.hasFocus },
                 items = HomeTopNavItem.entries,
                 isLargePadding = !focusOnContent && currentListOnTop,
                 onSelectedChanged = { nav ->

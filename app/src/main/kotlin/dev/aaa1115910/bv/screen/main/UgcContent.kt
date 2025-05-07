@@ -1,22 +1,11 @@
 package dev.aaa1115910.bv.screen.main
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
+import androidx.compose.animation.*
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -24,24 +13,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import dev.aaa1115910.biliapi.entity.ugc.UgcType
 import dev.aaa1115910.bv.component.TopNav
 import dev.aaa1115910.bv.component.UgcTopNavItem
-import dev.aaa1115910.bv.screen.main.ugc.AnimalContent
-import dev.aaa1115910.bv.screen.main.ugc.CarContent
-import dev.aaa1115910.bv.screen.main.ugc.CinephileContent
-import dev.aaa1115910.bv.screen.main.ugc.DanceContent
-import dev.aaa1115910.bv.screen.main.ugc.DougaContent
-import dev.aaa1115910.bv.screen.main.ugc.EntContent
-import dev.aaa1115910.bv.screen.main.ugc.FashionContent
-import dev.aaa1115910.bv.screen.main.ugc.FoodContent
-import dev.aaa1115910.bv.screen.main.ugc.GameContent
-import dev.aaa1115910.bv.screen.main.ugc.InformationContent
-import dev.aaa1115910.bv.screen.main.ugc.KichikuContent
-import dev.aaa1115910.bv.screen.main.ugc.KnowledgeContent
-import dev.aaa1115910.bv.screen.main.ugc.LifeContent
-import dev.aaa1115910.bv.screen.main.ugc.MusicContent
-import dev.aaa1115910.bv.screen.main.ugc.SportsContent
-import dev.aaa1115910.bv.screen.main.ugc.TechContent
-import dev.aaa1115910.bv.screen.main.ugc.UgcScaffoldState
-import dev.aaa1115910.bv.screen.main.ugc.rememberUgcScaffoldState
+import dev.aaa1115910.bv.screen.main.ugc.*
 import dev.aaa1115910.bv.util.fInfo
 import dev.aaa1115910.bv.util.requestFocus
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -74,14 +46,19 @@ fun UgcContent(
 
     var selectedTab by remember { mutableStateOf(UgcTopNavItem.Douga) }
     var focusOnContent by remember { mutableStateOf(false) }
+    var topNavHasFocus by remember { mutableStateOf(false) }
 
     //启动时刷新数据
     LaunchedEffect(Unit) {
 
     }
 
-    BackHandler(focusOnContent) {
+    BackHandler(focusOnContent || topNavHasFocus) {
         logger.fInfo { "onFocusBackToNav" }
+        if (topNavHasFocus) {
+            drawerItemFocusRequesters[DrawerItem.UGC]?.requestFocus()
+            return@BackHandler
+        }
         navFocusRequester.requestFocus(scope)
         // scroll to top
         scope.launch(Dispatchers.Main) {
@@ -111,7 +88,8 @@ fun UgcContent(
         topBar = {
             TopNav(
                 modifier = Modifier
-                    .focusRequester(navFocusRequester),
+                    .focusRequester(navFocusRequester)
+                    .onFocusChanged { topNavHasFocus = it.hasFocus },
                 items = UgcTopNavItem.entries,
                 isLargePadding = !focusOnContent,
                 onSelectedChanged = { nav ->

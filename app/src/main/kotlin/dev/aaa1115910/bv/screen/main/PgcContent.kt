@@ -68,6 +68,8 @@ fun PgcContent(
 
     var selectedTab by remember { mutableStateOf(PgcTopNavItem.Anime) }
     var focusOnContent by remember { mutableStateOf(false) }
+    var topNavHasFocus by remember { mutableStateOf(false) }
+    
     val currentListOnTop by remember {
         derivedStateOf {
             with(
@@ -90,8 +92,13 @@ fun PgcContent(
 
     }
 
-    BackHandler(focusOnContent) {
+    BackHandler(focusOnContent || topNavHasFocus) {
         logger.fInfo { "onFocusBackToNav" }
+        // 如果顶部导航有焦点，则返回到左边栏的PGC位置
+        if (topNavHasFocus) {
+            drawerItemFocusRequesters[DrawerItem.PGC]?.requestFocus()
+            return@BackHandler
+        }
         navFocusRequester.requestFocus(scope)
         // scroll to top
         scope.launch(Dispatchers.Main) {
@@ -107,12 +114,13 @@ fun PgcContent(
     }
 
     Scaffold(
-        modifier = Modifier,
+        modifier = modifier,
         topBar = {
             TopNav(
                 modifier = Modifier
                     .focusRequester(navFocusRequester)
-                    .padding(end = 80.dp),
+                    .padding(end = 80.dp)
+                    .onFocusChanged { topNavHasFocus = it.hasFocus },
                 items = PgcTopNavItem.entries,
                 isLargePadding = !focusOnContent && currentListOnTop,
                 onSelectedChanged = { nav ->

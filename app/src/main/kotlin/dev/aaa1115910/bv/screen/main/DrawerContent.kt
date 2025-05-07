@@ -8,6 +8,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -22,6 +24,14 @@ import dev.aaa1115910.bv.component.ifElse
 import dev.aaa1115910.bv.ui.theme.BVTheme
 import dev.aaa1115910.bv.util.isDpadRight
 import dev.aaa1115910.bv.util.isKeyDown
+
+// 创建全局的FocusRequester映射表，方便外部使用
+val drawerItemFocusRequesters = mutableMapOf<DrawerItem, FocusRequester>().apply {
+    DrawerItem.entries.filter { it != DrawerItem.User && it != DrawerItem.Settings }
+        .forEach { item ->
+            this[item] = FocusRequester()
+        }
+}
 
 @Composable
 fun DrawerContent(
@@ -113,6 +123,7 @@ fun DrawerContent(
         ).forEach { item ->
             IconButton(
                 modifier = Modifier
+                    .focusRequester(drawerItemFocusRequesters[item]!!)
                     .onFocusChanged { if (it.hasFocus) selectedItem = item }
                     .ifElse(
                         item == DrawerItem.Home,
