@@ -118,9 +118,9 @@ fun MainScreen(
                 }
             ) { screen ->
                 when (screen) {
-                    DrawerItem.Home -> HomeContent(navFocusRequester = mainFocusRequester)
-                    DrawerItem.UGC -> UgcContent(navFocusRequester = ugcFocusRequester)
-                    DrawerItem.PGC -> PgcContent(navFocusRequester = pgcFocusRequester)
+                    DrawerItem.Home -> HomeContent(contentFocusRequester = mainFocusRequester)
+                    DrawerItem.UGC -> UgcContent(contentFocusRequester = ugcFocusRequester)
+                    DrawerItem.PGC -> PgcContent(contentFocusRequester = pgcFocusRequester)
                     DrawerItem.Search -> SearchInputScreen(defaultFocusRequester = searchFocusRequester)
                     else -> {}
                 }

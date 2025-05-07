@@ -23,7 +23,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun UgcContent(
     modifier: Modifier = Modifier,
-    navFocusRequester: FocusRequester,
+    contentFocusRequester: FocusRequester,
     dougaState: UgcScaffoldState = rememberUgcScaffoldState(ugcType = UgcType.Douga),
     gameState: UgcScaffoldState = rememberUgcScaffoldState(ugcType = UgcType.Game),
     kichikuState: UgcScaffoldState = rememberUgcScaffoldState(ugcType = UgcType.Kichiku),
@@ -50,26 +50,23 @@ fun UgcContent(
     val initialSelectedTabIndex = currentSelectedTabs[DrawerItem.UGC]
     var selectedTab by remember(initialSelectedTabIndex) { 
         mutableStateOf(
-            initialSelectedTabIndex
-                ?.let { UgcTopNavItem.entries.getOrNull(it) }
+            (initialSelectedTabIndex as? UgcTopNavItem)
+                ?.let { UgcTopNavItem.entries.getOrNull(it.ordinal) }
                 ?: UgcTopNavItem.Douga
         ) 
     }
     
     // 当选中标签变化时，保存到全局状态
     LaunchedEffect(selectedTab) {
-        currentSelectedTabs[DrawerItem.UGC] = selectedTab.ordinal
+        currentSelectedTabs[DrawerItem.UGC] = selectedTab
     }
 
-    //启动时刷新数据
-    LaunchedEffect(Unit) {
-
-    }
+    val navFocusRequester = remember { FocusRequester() }
 
     BackHandler(focusOnContent || topNavHasFocus) {
         logger.fInfo { "onFocusBackToNav" }
         if (topNavHasFocus) {
-            drawerItemFocusRequesters[DrawerItem.UGC]?.requestFocus()
+            drawerItemFocusRequesters[DrawerItem.UGC]?.requestFocus(scope)
             return@BackHandler
         }
         navFocusRequester.requestFocus(scope)
@@ -131,7 +128,7 @@ fun UgcContent(
                 },
                 onLeftKeyEvent = {
                     // 顶部栏最左侧按左键时，跳转到左侧导航栏
-                    drawerItemFocusRequesters[DrawerItem.UGC]?.requestFocus()
+                    drawerItemFocusRequesters[DrawerItem.UGC]?.requestFocus(scope)
                 }
             )
         }
@@ -139,6 +136,7 @@ fun UgcContent(
         Box(
             modifier = Modifier
                 .padding(innerPadding)
+                .focusRequester(contentFocusRequester)
                 .onFocusChanged { focusOnContent = it.hasFocus }
         ) {
             AnimatedContent(

@@ -32,7 +32,7 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun HomeContent(
     modifier: Modifier = Modifier,
-    navFocusRequester: FocusRequester,
+    contentFocusRequester: FocusRequester,
     recommendViewModel: RecommendViewModel = koinViewModel(),
     popularViewModel: PopularViewModel = koinViewModel(),
     dynamicViewModel: DynamicViewModel = koinViewModel(),
@@ -60,15 +60,15 @@ fun HomeContent(
     val initialSelectedTabIndex = currentSelectedTabs[DrawerItem.Home]
     var selectedTab by remember(initialSelectedTabIndex) {
         mutableStateOf(
-            initialSelectedTabIndex
-                ?.let { HomeTopNavItem.entries.getOrNull(it) }
+            (initialSelectedTabIndex as? HomeTopNavItem)
+                ?.let { HomeTopNavItem.entries.getOrNull(it.ordinal) }
                 ?: initialSelectedTab
         )
     }
     
     // 当选中标签变化时，保存到全局状态
     LaunchedEffect(selectedTab) {
-        currentSelectedTabs[DrawerItem.Home] = selectedTab.ordinal
+        currentSelectedTabs[DrawerItem.Home] = selectedTab
     }
 
     val currentListOnTop by remember {
@@ -112,9 +112,11 @@ fun HomeContent(
         }
     }
 
+    val navFocusRequester = remember { FocusRequester() }
+
     BackHandler(focusOnContent || topNavHasFocus) {
         if (topNavHasFocus) {
-            drawerItemFocusRequesters[DrawerItem.Home]?.requestFocus()
+            drawerItemFocusRequesters[DrawerItem.Home]?.requestFocus(scope)
             return@BackHandler
         }
         navFocusRequester.requestFocus(scope)
@@ -181,7 +183,7 @@ fun HomeContent(
                 },
                 onLeftKeyEvent = {
                     // 顶部栏最左侧按左键时，跳转到左侧导航栏
-                    drawerItemFocusRequesters[DrawerItem.Home]?.requestFocus()
+                    drawerItemFocusRequesters[DrawerItem.Home]?.requestFocus(scope)
                 }
             )
         }
@@ -189,6 +191,7 @@ fun HomeContent(
         Box(
             modifier = Modifier
                 .padding(innerPadding)
+                .focusRequester(contentFocusRequester)
                 .onFocusChanged { focusOnContent = it.hasFocus }
         ) {
             AnimatedContent(

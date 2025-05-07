@@ -26,7 +26,7 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun PgcContent(
     modifier: Modifier = Modifier,
-    navFocusRequester: FocusRequester,
+    contentFocusRequester: FocusRequester,
     pgcAnimeViewModel: PgcAnimeViewModel = koinViewModel(),
     pgcGuoChuangViewModel: PgcGuoChuangViewModel = koinViewModel(),
     pgcMovieViewModel: PgcMovieViewModel = koinViewModel(),
@@ -51,15 +51,15 @@ fun PgcContent(
     val initialSelectedTabIndex = currentSelectedTabs[DrawerItem.PGC]
     var selectedTab by remember(initialSelectedTabIndex) { 
         mutableStateOf(
-            initialSelectedTabIndex
-                ?.let { PgcTopNavItem.entries.getOrNull(it) }
+            (initialSelectedTabIndex as? PgcTopNavItem)
+                ?.let { PgcTopNavItem.entries.getOrNull(it.ordinal) }
                 ?: PgcTopNavItem.Anime
         ) 
     }
     
     // 当选中标签变化时，保存到全局状态
     LaunchedEffect(selectedTab) {
-        currentSelectedTabs[DrawerItem.PGC] = selectedTab.ordinal
+        currentSelectedTabs[DrawerItem.PGC] = selectedTab
     }
 
     val currentListOnTop by remember {
@@ -79,16 +79,13 @@ fun PgcContent(
         }
     }
 
-    //启动时刷新数据
-    LaunchedEffect(Unit) {
-
-    }
+    val navFocusRequester = remember { FocusRequester() }
 
     BackHandler(focusOnContent || topNavHasFocus) {
         logger.fInfo { "onFocusBackToNav" }
         // 如果顶部导航有焦点，则返回到左边栏的PGC位置
         if (topNavHasFocus) {
-            drawerItemFocusRequesters[DrawerItem.PGC]?.requestFocus()
+            drawerItemFocusRequesters[DrawerItem.PGC]?.requestFocus(scope)
             return@BackHandler
         }
         navFocusRequester.requestFocus(scope)
@@ -131,7 +128,7 @@ fun PgcContent(
                 },
                 onLeftKeyEvent = {
                     // 顶部栏最左侧按左键时，跳转到左侧导航栏
-                    drawerItemFocusRequesters[DrawerItem.PGC]?.requestFocus()
+                    drawerItemFocusRequesters[DrawerItem.PGC]?.requestFocus(scope)
                 }
             )
         }
@@ -139,6 +136,7 @@ fun PgcContent(
         Box(
             modifier = Modifier
                 .padding(innerPadding)
+                .focusRequester(contentFocusRequester)
                 .onFocusChanged { focusOnContent = it.hasFocus }
         ) {
             AnimatedContent(

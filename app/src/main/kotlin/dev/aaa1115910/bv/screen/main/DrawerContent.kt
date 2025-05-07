@@ -19,6 +19,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.*
 import coil.compose.AsyncImage
+import dev.aaa1115910.bv.component.TopNavItem
 import dev.aaa1115910.bv.component.createCustomInitialFocusRestorerModifiers
 import dev.aaa1115910.bv.component.ifElse
 import dev.aaa1115910.bv.ui.theme.BVTheme
@@ -34,7 +35,7 @@ val drawerItemFocusRequesters = mutableMapOf<DrawerItem, FocusRequester>().apply
 }
 
 // 用于记住每个内容页当前选中的Tab
-val currentSelectedTabs = mutableStateMapOf<DrawerItem, Int>()
+val currentSelectedTabs = mutableStateMapOf<DrawerItem, TopNavItem>()
 
 @Composable
 fun DrawerContent(
