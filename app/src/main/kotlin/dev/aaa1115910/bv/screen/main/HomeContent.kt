@@ -44,11 +44,26 @@ fun HomeContent(
     val popularState = rememberLazyListState()
     val dynamicState = rememberLazyListState()
 
-    var selectedTab by remember { mutableStateOf(HomeTopNavItem.Recommend) }
     var focusOnContent by remember { mutableStateOf(false) }
     var hasFocus by remember { mutableStateOf(false) }
     var topNavHasFocus by remember { mutableStateOf(false) }
+
+    // 从全局状态获取上次选择的标签位置，如果没有则默认为Recommend
+    // 将这个值提到可组合函数的顶部，避免在重组时重新计算
+    val initialSelectedTabIndex = currentSelectedTabs[DrawerItem.Home]
+    var selectedTab by remember(initialSelectedTabIndex) {
+        mutableStateOf(
+            initialSelectedTabIndex
+                ?.let { HomeTopNavItem.entries.getOrNull(it) }
+                ?: HomeTopNavItem.Recommend
+        )
+    }
     
+    // 当选中标签变化时，保存到全局状态
+    LaunchedEffect(selectedTab) {
+        currentSelectedTabs[DrawerItem.Home] = selectedTab.ordinal
+    }
+
     val currentListOnTop by remember {
         derivedStateOf {
             with(
@@ -124,6 +139,7 @@ fun HomeContent(
                     .onFocusChanged { topNavHasFocus = it.hasFocus },
                 items = HomeTopNavItem.entries,
                 isLargePadding = !focusOnContent && currentListOnTop,
+                initialSelectedItem = selectedTab,
                 onSelectedChanged = { nav ->
                     selectedTab = nav as HomeTopNavItem
                     when (nav) {

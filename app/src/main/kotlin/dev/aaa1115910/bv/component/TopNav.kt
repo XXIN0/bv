@@ -2,29 +2,13 @@ package dev.aaa1115910.bv.component
 
 import android.content.Context
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.tv.material3.LocalContentColor
-import androidx.tv.material3.MaterialTheme
-import androidx.tv.material3.Tab
-import androidx.tv.material3.TabRow
-import androidx.tv.material3.TabRowScope
-import androidx.tv.material3.Text
+import androidx.tv.material3.*
 import dev.aaa1115910.biliapi.entity.pgc.PgcType
 import dev.aaa1115910.biliapi.entity.ugc.UgcType
 import dev.aaa1115910.bv.BVApp
@@ -37,14 +21,26 @@ fun TopNav(
     modifier: Modifier = Modifier,
     items: List<TopNavItem>,
     isLargePadding: Boolean,
+    initialSelectedItem: TopNavItem? = null,
     onSelectedChanged: (TopNavItem) -> Unit = {},
     onClick: (TopNavItem) -> Unit = {},
     onLeftKeyEvent: () -> Unit = {}
 ) {
     val focusRestorerModifiers = createCustomInitialFocusRestorerModifiers()
 
-    var selectedNav by remember { mutableStateOf(items.first()) }
-    var selectedTabIndex by remember { mutableIntStateOf(0) }
+    var selectedNav by remember(initialSelectedItem) { 
+        mutableStateOf(initialSelectedItem ?: items.first()) 
+    }
+    
+    var selectedTabIndex by remember(initialSelectedItem) { 
+        mutableIntStateOf(
+            if (initialSelectedItem != null) {
+                val index = items.indexOf(initialSelectedItem)
+                if (index >= 0) index else 0
+            } else 0
+        ) 
+    }
+    
     val verticalPadding by animateDpAsState(
         targetValue = if (isLargePadding) 24.dp else 12.dp,
         label = "top nav vertical padding"

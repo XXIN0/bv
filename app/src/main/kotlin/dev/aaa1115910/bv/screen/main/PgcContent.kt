@@ -1,48 +1,23 @@
 package dev.aaa1115910.bv.screen.main
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
+import androidx.compose.animation.*
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.unit.dp
 import dev.aaa1115910.bv.component.PgcTopNavItem
 import dev.aaa1115910.bv.component.TopNav
-import dev.aaa1115910.bv.screen.main.pgc.AnimeContent
-import dev.aaa1115910.bv.screen.main.pgc.DocumentaryContent
-import dev.aaa1115910.bv.screen.main.pgc.GuoChuangContent
-import dev.aaa1115910.bv.screen.main.pgc.MovieContent
-import dev.aaa1115910.bv.screen.main.pgc.TvContent
-import dev.aaa1115910.bv.screen.main.pgc.VarietyContent
+import dev.aaa1115910.bv.screen.main.pgc.*
 import dev.aaa1115910.bv.util.fInfo
-import dev.aaa1115910.bv.util.isDpadLeft
-import dev.aaa1115910.bv.util.isKeyDown
 import dev.aaa1115910.bv.util.requestFocus
-import dev.aaa1115910.bv.viewmodel.pgc.PgcAnimeViewModel
-import dev.aaa1115910.bv.viewmodel.pgc.PgcDocumentaryViewModel
-import dev.aaa1115910.bv.viewmodel.pgc.PgcGuoChuangViewModel
-import dev.aaa1115910.bv.viewmodel.pgc.PgcMovieViewModel
-import dev.aaa1115910.bv.viewmodel.pgc.PgcTvViewModel
-import dev.aaa1115910.bv.viewmodel.pgc.PgcVarietyViewModel
+import dev.aaa1115910.bv.viewmodel.pgc.*
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -69,10 +44,24 @@ fun PgcContent(
     val tvState = rememberLazyListState()
     val varietyState = rememberLazyListState()
 
-    var selectedTab by remember { mutableStateOf(PgcTopNavItem.Anime) }
     var focusOnContent by remember { mutableStateOf(false) }
     var topNavHasFocus by remember { mutableStateOf(false) }
+
+    // 使用remember的key参数确保只有在DrawerItem.PGC的tab状态变化时才重新计算
+    val initialSelectedTabIndex = currentSelectedTabs[DrawerItem.PGC]
+    var selectedTab by remember(initialSelectedTabIndex) { 
+        mutableStateOf(
+            initialSelectedTabIndex
+                ?.let { PgcTopNavItem.entries.getOrNull(it) }
+                ?: PgcTopNavItem.Anime
+        ) 
+    }
     
+    // 当选中标签变化时，保存到全局状态
+    LaunchedEffect(selectedTab) {
+        currentSelectedTabs[DrawerItem.PGC] = selectedTab.ordinal
+    }
+
     val currentListOnTop by remember {
         derivedStateOf {
             with(
@@ -126,6 +115,7 @@ fun PgcContent(
                     .onFocusChanged { topNavHasFocus = it.hasFocus },
                 items = PgcTopNavItem.entries,
                 isLargePadding = !focusOnContent && currentListOnTop,
+                initialSelectedItem = selectedTab,
                 onSelectedChanged = { nav ->
                     selectedTab = nav as PgcTopNavItem
                 },

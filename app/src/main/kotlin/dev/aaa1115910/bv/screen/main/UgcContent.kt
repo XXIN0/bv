@@ -43,10 +43,23 @@ fun UgcContent(
 ) {
     val scope = rememberCoroutineScope()
     val logger = KotlinLogging.logger("UgcContent")
-
-    var selectedTab by remember { mutableStateOf(UgcTopNavItem.Douga) }
     var focusOnContent by remember { mutableStateOf(false) }
     var topNavHasFocus by remember { mutableStateOf(false) }
+
+    // 使用remember的key参数确保只有在DrawerItem.UGC的tab状态变化时才重新计算
+    val initialSelectedTabIndex = currentSelectedTabs[DrawerItem.UGC]
+    var selectedTab by remember(initialSelectedTabIndex) { 
+        mutableStateOf(
+            initialSelectedTabIndex
+                ?.let { UgcTopNavItem.entries.getOrNull(it) }
+                ?: UgcTopNavItem.Douga
+        ) 
+    }
+    
+    // 当选中标签变化时，保存到全局状态
+    LaunchedEffect(selectedTab) {
+        currentSelectedTabs[DrawerItem.UGC] = selectedTab.ordinal
+    }
 
     //启动时刷新数据
     LaunchedEffect(Unit) {
@@ -92,6 +105,7 @@ fun UgcContent(
                     .onFocusChanged { topNavHasFocus = it.hasFocus },
                 items = UgcTopNavItem.entries,
                 isLargePadding = !focusOnContent,
+                initialSelectedItem = selectedTab,
                 onSelectedChanged = { nav ->
                     selectedTab = nav as UgcTopNavItem
                 },

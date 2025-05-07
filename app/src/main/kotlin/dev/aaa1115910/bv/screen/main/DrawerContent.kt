@@ -33,6 +33,9 @@ val drawerItemFocusRequesters = mutableMapOf<DrawerItem, FocusRequester>().apply
         }
 }
 
+// 用于记住每个内容页当前选中的Tab
+val currentSelectedTabs = mutableStateMapOf<DrawerItem, Int>()
+
 @Composable
 fun DrawerContent(
     modifier: Modifier = Modifier,
