@@ -16,9 +16,11 @@ import androidx.compose.ui.unit.dp
 import dev.aaa1115910.bv.R
 import dev.aaa1115910.bv.activities.settings.SettingsActivity
 import dev.aaa1115910.bv.activities.user.*
+import dev.aaa1115910.bv.component.HomeTopNavItem
 import dev.aaa1115910.bv.component.UserPanel
 import dev.aaa1115910.bv.screen.main.*
 import dev.aaa1115910.bv.screen.search.SearchInputScreen
+import dev.aaa1115910.bv.util.Prefs
 import dev.aaa1115910.bv.util.fException
 import dev.aaa1115910.bv.util.fInfo
 import dev.aaa1115910.bv.util.toast
@@ -38,6 +40,7 @@ fun MainScreen(
     var selectedDrawerItem by remember { mutableStateOf(DrawerItem.Home) }
 
     val mainFocusRequester = remember { FocusRequester() }
+    val mainNavFocusRequester = remember { FocusRequester() }
     val ugcFocusRequester = remember { FocusRequester() }
     val pgcFocusRequester = remember { FocusRequester() }
     val searchFocusRequester = remember { FocusRequester() }
@@ -55,7 +58,14 @@ fun MainScreen(
 
     val onFocusToContent = {
         when (selectedDrawerItem) {
-            DrawerItem.Home -> mainFocusRequester.requestFocus()
+            DrawerItem.Home -> {
+                if (!Prefs.isLogin && currentSelectedTabs[DrawerItem.Home] == HomeTopNavItem.Dynamics) {
+                    // 未登录情况下只能获取标题栏的焦点而不能是内容的
+                    mainNavFocusRequester.requestFocus()
+                } else {
+                    mainFocusRequester.requestFocus()
+                }
+            }
             DrawerItem.UGC -> ugcFocusRequester.requestFocus()
             DrawerItem.PGC -> pgcFocusRequester.requestFocus()
             DrawerItem.Search -> searchFocusRequester.requestFocus()
@@ -65,7 +75,7 @@ fun MainScreen(
 
     LaunchedEffect(Unit) {
         runCatching {
-            mainFocusRequester.requestFocus()
+            mainNavFocusRequester.requestFocus()
         }.onFailure {
             logger.fException(it) { "request default focus requester failed" }
         }
@@ -118,7 +128,10 @@ fun MainScreen(
                 }
             ) { screen ->
                 when (screen) {
-                    DrawerItem.Home -> HomeContent(contentFocusRequester = mainFocusRequester)
+                    DrawerItem.Home -> HomeContent(
+                        contentFocusRequester = mainFocusRequester,
+                        navFocusRequester = mainNavFocusRequester
+                    )
                     DrawerItem.UGC -> UgcContent(contentFocusRequester = ugcFocusRequester)
                     DrawerItem.PGC -> PgcContent(contentFocusRequester = pgcFocusRequester)
                     DrawerItem.Search -> SearchInputScreen(defaultFocusRequester = searchFocusRequester)

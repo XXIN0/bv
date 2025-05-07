@@ -33,6 +33,7 @@ import org.koin.androidx.compose.koinViewModel
 fun HomeContent(
     modifier: Modifier = Modifier,
     contentFocusRequester: FocusRequester,
+    navFocusRequester: FocusRequester,
     recommendViewModel: RecommendViewModel = koinViewModel(),
     popularViewModel: PopularViewModel = koinViewModel(),
     dynamicViewModel: DynamicViewModel = koinViewModel(),
@@ -111,8 +112,6 @@ fun HomeContent(
             userViewModel.clearUserInfo()
         }
     }
-
-    val navFocusRequester = remember { FocusRequester() }
 
     BackHandler(focusOnContent || topNavHasFocus) {
         if (topNavHasFocus) {
