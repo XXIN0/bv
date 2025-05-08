@@ -13,11 +13,7 @@ import dev.aaa1115910.biliapi.entity.pgc.PgcType
 import dev.aaa1115910.biliapi.repositories.PgcRepository
 import dev.aaa1115910.bv.BVApp
 import dev.aaa1115910.bv.BuildConfig
-import dev.aaa1115910.bv.util.addWithMainContext
-import dev.aaa1115910.bv.util.addAllWithMainContext
-import dev.aaa1115910.bv.util.fInfo
-import dev.aaa1115910.bv.util.fWarn
-import dev.aaa1115910.bv.util.toast
+import dev.aaa1115910.bv.util.*
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -95,6 +91,7 @@ abstract class PgcViewModel(
      * 更新轮播图
      */
     private suspend fun updateCarousel() {
+        return
         logger.fInfo { "Updating $pgcType carousel" }
         runCatching {
             // 由于未知原因，注入的 PgcRepository 可能获取到的对象为 null

@@ -1,10 +1,8 @@
 package dev.aaa1115910.bv.screen.main.ugc
 
 import android.content.Context
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -18,7 +16,6 @@ import dev.aaa1115910.biliapi.entity.ugc.region.UgcRegionPage
 import dev.aaa1115910.biliapi.repositories.UgcRepository
 import dev.aaa1115910.bv.R
 import dev.aaa1115910.bv.activities.video.VideoInfoActivity
-import dev.aaa1115910.bv.component.UgcCarousel
 import dev.aaa1115910.bv.component.videocard.SmallVideoCard
 import dev.aaa1115910.bv.entity.carddata.VideoCardData
 import dev.aaa1115910.bv.util.fInfo
@@ -57,23 +54,23 @@ fun UgcRegionScaffold(
         modifier = modifier,
         state = state.lazyListState
     ) {
-        if (state.showCarousel) {
-            item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    UgcCarousel(
-                        modifier = Modifier
-                            .width(880.dp)
-                            .padding(32.dp, 0.dp),
-                        data = state.carouselItems
-                    )
-                }
-            }
-        }
+        // if (state.showCarousel) {
+        //     item {
+        //         Row(
+        //             modifier = Modifier
+        //                 .fillMaxWidth()
+        //                 .horizontalScroll(rememberScrollState()),
+        //             horizontalArrangement = Arrangement.Center
+        //         ) {
+        //             UgcCarousel(
+        //                 modifier = Modifier
+        //                     .width(880.dp)
+        //                     .padding(32.dp, 0.dp),
+        //                 data = state.carouselItems
+        //             )
+        //         }
+        //     }
+        // }
 
         if (childRegionButtons != null) {
             item {
