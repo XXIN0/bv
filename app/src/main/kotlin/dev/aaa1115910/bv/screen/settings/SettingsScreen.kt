@@ -27,9 +27,7 @@ import dev.aaa1115910.bv.screen.main.DrawerItem
 import dev.aaa1115910.bv.screen.main.drawerItemFocusRequesters
 import dev.aaa1115910.bv.screen.settings.content.*
 import dev.aaa1115910.bv.ui.theme.BVTheme
-import dev.aaa1115910.bv.util.isDpadLeft
-import dev.aaa1115910.bv.util.isKeyDown
-import dev.aaa1115910.bv.util.requestFocus
+import dev.aaa1115910.bv.util.*
 
 @Composable
 fun SettingsScreen(
@@ -49,13 +47,27 @@ fun SettingsScreen(
     BackHandler {
         if (focusInNav) {
             drawerItemFocusRequesters[DrawerItem.Settings]?.requestFocus(scope)
-        }else{
+        } else {
             focusInNav = true
         }
     }
 
     Scaffold(
-        modifier = modifier.focusRequester(defaultFocusRequester),
+        modifier = modifier
+            .focusRequester(defaultFocusRequester)
+            .onPreviewKeyEvent { keyEvent ->
+                // 只有在最左边的选项，按左键时才向外传递事件
+                if (keyEvent.isKeyDown()) {
+                    // 已经是最上或最下时拦截事件
+                    if (keyEvent.isDpadUp() && currentMenu == SettingsMenuNavItem.entries.first()) {
+                        return@onPreviewKeyEvent true
+                    }
+                    if (keyEvent.isDpadDown() && currentMenu == SettingsMenuNavItem.entries.last()) {
+                        return@onPreviewKeyEvent true
+                    }
+                }
+                false
+            },
         topBar = {
             Box(
                 modifier = Modifier.padding(

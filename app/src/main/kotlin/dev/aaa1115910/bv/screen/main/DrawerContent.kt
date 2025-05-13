@@ -24,6 +24,7 @@ import dev.aaa1115910.bv.component.createCustomInitialFocusRestorerModifiers
 import dev.aaa1115910.bv.component.ifElse
 import dev.aaa1115910.bv.ui.theme.BVTheme
 import dev.aaa1115910.bv.util.isDpadRight
+import dev.aaa1115910.bv.util.isDpadUp
 import dev.aaa1115910.bv.util.isKeyDown
 
 // 创建全局的FocusRequester映射表，方便外部使用
@@ -48,6 +49,7 @@ fun DrawerContent(
     onLogin: () -> Unit = {}
 ) {
     var selectedItem by remember { mutableStateOf(DrawerItem.Home) }
+    var focusInUser by remember { mutableStateOf(false) }
     val focusRestorerModifiers = createCustomInitialFocusRestorerModifiers()
     val itemColors = NavigationDrawerItemDefaults.colors()
     val iconColors = IconButtonDefaults.colors(
@@ -68,9 +70,13 @@ fun DrawerContent(
             .fillMaxHeight()
             .padding(vertical = 12.dp)
             .onPreviewKeyEvent { keyEvent ->
-                if (keyEvent.isDpadRight()) {
-                    if (keyEvent.isKeyDown()) {
+                if (keyEvent.isKeyDown()) {
+                    if (keyEvent.isDpadRight()) {
                         onFocusToContent()
+                        return@onPreviewKeyEvent true
+                    }
+                    // 已经是最上时拦截事件
+                    if (keyEvent.isDpadUp() && focusInUser) {
                         return@onPreviewKeyEvent true
                     }
                 }
@@ -81,7 +87,9 @@ fun DrawerContent(
     ) {
         // 用户头像
         IconButton(
-            modifier = Modifier,
+            modifier = Modifier.onFocusChanged {
+                focusInUser = it.hasFocus
+            },
             colors = iconColors,
             onClick = {
                 if (isLogin) {
