@@ -42,9 +42,10 @@ fun SettingsScreen(
 
     var currentMenu by remember { mutableStateOf(SettingsMenuNavItem.Resolution) }
     var focusInNav by remember { mutableStateOf(false) }
+    var focusInContent by remember { mutableStateOf(false) }
 
     val scope = rememberCoroutineScope()
-    BackHandler {
+    BackHandler(enabled = focusInNav || focusInContent) {
         if (focusInNav) {
             drawerItemFocusRequesters[DrawerItem.Settings]?.requestFocus(scope)
         } else {
@@ -97,6 +98,7 @@ fun SettingsScreen(
         Row(
             modifier = Modifier.padding(innerPadding)
         ) {
+            val contentFocusRequester = remember { FocusRequester() }
             SettingsNav(
                 modifier = Modifier
                     .onFocusChanged { focusInNav = it.hasFocus }
@@ -104,10 +106,15 @@ fun SettingsScreen(
                     .fillMaxHeight(),
                 currentMenu = currentMenu,
                 onMenuChanged = { currentMenu = it },
-                isFocusing = focusInNav
+                isFocusing = focusInNav,
+                onClickItem = {
+                    contentFocusRequester.requestFocus(scope)
+                }
             )
             SettingContent(
                 modifier = Modifier
+                    .focusRequester(contentFocusRequester)
+                    .onFocusChanged { focusInContent = it.hasFocus }
                     .weight(5f)
                     .fillMaxSize(),
                 onBackNav = { focusInNav = true },
@@ -122,7 +129,8 @@ fun SettingsNav(
     modifier: Modifier = Modifier,
     currentMenu: SettingsMenuNavItem,
     onMenuChanged: (SettingsMenuNavItem) -> Unit,
-    isFocusing: Boolean
+    isFocusing: Boolean,
+    onClickItem: () -> Unit
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -149,7 +157,8 @@ fun SettingsNav(
                     selected = currentMenu == item,
                     onFocus = {
                         onMenuChanged(item)
-                    }
+                    },
+                    onClick = onClickItem
                 )
             }
         }

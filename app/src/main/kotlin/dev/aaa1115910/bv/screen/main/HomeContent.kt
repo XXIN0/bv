@@ -133,13 +133,45 @@ fun HomeContent(
         }
     }
 
-    // 已登录的话，首页 TAB 会从"推荐-热门-动态"，变更顺序为"动态-推荐-热门"（Done✅）
-    // 添加"个人"标签页在最后
-    val items = if (Prefs.isLogin) {
-        listOf(HomeTopNavItem.Dynamics, HomeTopNavItem.Recommend, HomeTopNavItem.Popular, HomeTopNavItem.User)
-    } else {
-        listOf(HomeTopNavItem.Recommend, HomeTopNavItem.Popular, HomeTopNavItem.Dynamics, HomeTopNavItem.User)
+    // 使用自定义的标签顺序或默认顺序
+    // 创建一个可观察的 homeTabOrder 状态
+    val homeTabOrder by remember { mutableStateOf(Prefs.homeTabOrder) }
+
+    // 解析标签顺序，每次 homeTabOrder 变化时重新计算
+    val items = remember(homeTabOrder) {
+        val savedOrder = Prefs.homeTabOrder
+        val tabList = mutableListOf<HomeTopNavItem>()
+
+        if (savedOrder.isNotEmpty()) {
+            // 解析保存的顺序
+            savedOrder.split(",").forEach { ordinal ->
+                try {
+                    val index = ordinal.toInt()
+                    HomeTopNavItem.entries.getOrNull(index)?.let {
+                        tabList.add(it)
+                    }
+                } catch (e: Exception) {
+                    // 忽略无效条目
+                }
+            }
+
+            // 添加任何缺失的标签（以防在更新中添加了新标签）
+            HomeTopNavItem.entries.forEach { tab ->
+                if (!tabList.contains(tab)) {
+                    tabList.add(tab)
+                }
+            }
+            tabList
+        } else {
+            // 使用默认顺序
+            if (Prefs.isLogin) {
+                listOf(HomeTopNavItem.Dynamics, HomeTopNavItem.Recommend, HomeTopNavItem.Popular, HomeTopNavItem.User)
+            } else {
+                listOf(HomeTopNavItem.Recommend, HomeTopNavItem.Popular, HomeTopNavItem.Dynamics, HomeTopNavItem.User)
+            }
+        }
     }
+
     Scaffold(
         modifier = modifier,
         topBar = {
