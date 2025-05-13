@@ -14,12 +14,7 @@ import dev.aaa1115910.bv.BuildConfig
 import dev.aaa1115910.bv.R
 import dev.aaa1115910.bv.entity.carddata.VideoCardData
 import dev.aaa1115910.bv.repository.UserRepository
-import dev.aaa1115910.bv.util.Prefs
-import dev.aaa1115910.bv.util.addWithMainContext
-import dev.aaa1115910.bv.util.fInfo
-import dev.aaa1115910.bv.util.fWarn
-import dev.aaa1115910.bv.util.formatMinSec
-import dev.aaa1115910.bv.util.toast
+import dev.aaa1115910.bv.util.*
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -38,6 +33,13 @@ class ToViewViewModel(
 
     private var cursor = 0L
     private var updating = false
+
+    fun clearData() {
+        histories.clear()
+        cursor = 0L
+        noMore = false
+        updating = false
+    }
 
     fun update() {
         viewModelScope.launch(Dispatchers.IO) {

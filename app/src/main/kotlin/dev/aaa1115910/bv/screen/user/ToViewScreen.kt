@@ -1,37 +1,24 @@
 package dev.aaa1115910.bv.screen.user
 
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.tv.foundation.lazy.grid.TvGridCells
-import androidx.tv.foundation.lazy.grid.TvLazyVerticalGrid
-import androidx.tv.foundation.lazy.grid.itemsIndexed
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.Text
 import dev.aaa1115910.bv.R
 import dev.aaa1115910.bv.activities.video.VideoInfoActivity
 import dev.aaa1115910.bv.component.videocard.SmallVideoCard
 import dev.aaa1115910.bv.entity.proxy.ProxyArea
-import dev.aaa1115910.bv.viewmodel.user.HistoryViewModel
 import dev.aaa1115910.bv.viewmodel.user.ToViewViewModel
 import org.koin.androidx.compose.koinViewModel
 
@@ -39,7 +26,9 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun ToViewScreen(
     modifier: Modifier = Modifier,
-    ToViewViewModel: ToViewViewModel = koinViewModel()
+    ToViewViewModel: ToViewViewModel = koinViewModel(),
+    lazyGridState: LazyGridState = rememberLazyGridState(),
+    onlyShowContent: Boolean = true
 ) {
     val context = LocalContext.current
     var currentIndex by remember { mutableIntStateOf(0) }
@@ -56,6 +45,9 @@ fun ToViewScreen(
     Scaffold(
         modifier = modifier,
         topBar = {
+            if (onlyShowContent) {
+                return@Scaffold
+            }
             Box(
                 modifier = Modifier.padding(start = 48.dp, top = 24.dp, bottom = 8.dp, end = 48.dp)
             ) {
@@ -89,12 +81,13 @@ fun ToViewScreen(
             }
         }
     ) { innerPadding ->
-        TvLazyVerticalGrid(
+        LazyVerticalGrid(
             modifier = Modifier.padding(innerPadding),
-            columns = TvGridCells.Fixed(4),
-            contentPadding = PaddingValues(24.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp),
-            horizontalArrangement = Arrangement.spacedBy(24.dp)
+            state = lazyGridState,
+            columns = GridCells.Fixed(4),
+            contentPadding = PaddingValues(dimensionResource(R.dimen.grid_padding)),
+            verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.grid_padding)),
+            horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.grid_spacedBy))
         ) {
             itemsIndexed(ToViewViewModel.histories) { index, item ->
                 Box(

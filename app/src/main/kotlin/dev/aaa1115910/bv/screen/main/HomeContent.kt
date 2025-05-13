@@ -17,6 +17,7 @@ import dev.aaa1115910.bv.component.TopNav
 import dev.aaa1115910.bv.screen.main.home.DynamicsScreen
 import dev.aaa1115910.bv.screen.main.home.PopularScreen
 import dev.aaa1115910.bv.screen.main.home.RecommendScreen
+import dev.aaa1115910.bv.screen.main.home.UserScreen
 import dev.aaa1115910.bv.util.Prefs
 import dev.aaa1115910.bv.util.fInfo
 import dev.aaa1115910.bv.util.requestFocus
@@ -45,6 +46,7 @@ fun HomeContent(
     val recommendState = rememberLazyListState()
     val popularState = rememberLazyListState()
     val dynamicState = rememberLazyListState()
+    val userState = rememberLazyListState()
 
     var focusOnContent by remember { mutableStateOf(false) }
     var topNavHasFocus by remember { mutableStateOf(false) }
@@ -79,6 +81,7 @@ fun HomeContent(
                     HomeTopNavItem.Recommend -> recommendState
                     HomeTopNavItem.Popular -> popularState
                     HomeTopNavItem.Dynamics -> dynamicState
+                    HomeTopNavItem.User -> userState
                 }
             ) {
                 firstVisibleItemIndex == 0 && firstVisibleItemScrollOffset == 0
@@ -125,15 +128,17 @@ fun HomeContent(
                 HomeTopNavItem.Recommend -> recommendState.animateScrollToItem(0)
                 HomeTopNavItem.Popular -> popularState.animateScrollToItem(0)
                 HomeTopNavItem.Dynamics -> dynamicState.animateScrollToItem(0)
+                HomeTopNavItem.User -> {} // 用户页面不需要滚动到顶部
             }
         }
     }
 
-    // 已登录的话，首页 TAB 会从“推荐-热门-动态”，变更顺序为“动态-推荐-热门”（Done✅）
+    // 已登录的话，首页 TAB 会从"推荐-热门-动态"，变更顺序为"动态-推荐-热门"（Done✅）
+    // 添加"个人"标签页在最后
     val items = if (Prefs.isLogin) {
-        listOf(HomeTopNavItem.Dynamics, HomeTopNavItem.Recommend, HomeTopNavItem.Popular)
+        listOf(HomeTopNavItem.Dynamics, HomeTopNavItem.Recommend, HomeTopNavItem.Popular, HomeTopNavItem.User)
     } else {
-        listOf(HomeTopNavItem.Recommend, HomeTopNavItem.Popular, HomeTopNavItem.Dynamics)
+        listOf(HomeTopNavItem.Recommend, HomeTopNavItem.Popular, HomeTopNavItem.Dynamics, HomeTopNavItem.User)
     }
     Scaffold(
         modifier = modifier,
@@ -141,7 +146,7 @@ fun HomeContent(
             TopNav(
                 modifier = Modifier
                     .focusRequester(navFocusRequester)
-                    .padding(end = 80.dp)
+                    .padding(end = 60.dp)
                     .onFocusChanged { topNavHasFocus = it.hasFocus },
                 items = items,
                 isLargePadding = !focusOnContent && currentListOnTop,
@@ -156,6 +161,7 @@ fun HomeContent(
                                 scope.launch(Dispatchers.IO) { dynamicViewModel.loadMore() }
                             }
                         }
+                        HomeTopNavItem.User -> {} // 用户页面不需要特殊处理
                     }
                 },
                 onClick = { nav ->
@@ -177,6 +183,10 @@ fun HomeContent(
                         HomeTopNavItem.Dynamics -> {
                             dynamicViewModel.clearData()
                             scope.launch(Dispatchers.IO) { dynamicViewModel.loadMore() }
+                        }
+
+                        HomeTopNavItem.User -> {
+                            // 用户页面不需要刷新数据
                         }
                     }
                 },
@@ -211,6 +221,10 @@ fun HomeContent(
                     HomeTopNavItem.Recommend -> RecommendScreen(lazyListState = recommendState)
                     HomeTopNavItem.Popular -> PopularScreen(lazyListState = popularState)
                     HomeTopNavItem.Dynamics -> DynamicsScreen(lazyListState = dynamicState)
+                    HomeTopNavItem.User -> UserScreen(
+                        contentFocusRequester = contentFocusRequester,
+                        topNavFocusRequester = navFocusRequester
+                    )
                 }
             }
         }
