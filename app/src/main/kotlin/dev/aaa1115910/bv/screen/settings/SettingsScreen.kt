@@ -13,8 +13,6 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.nativeKeyCode
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -49,20 +47,15 @@ fun SettingsScreen(
 
     val scope = rememberCoroutineScope()
     BackHandler {
-        drawerItemFocusRequesters[DrawerItem.Settings]?.requestFocus(scope)
+        if (focusInNav) {
+            drawerItemFocusRequesters[DrawerItem.Settings]?.requestFocus(scope)
+        }else{
+            focusInNav = true
+        }
     }
 
     Scaffold(
-        modifier = modifier
-            .focusRequester(defaultFocusRequester)
-            .onPreviewKeyEvent { keyEvent ->
-                // 只有在最左边的选项，按左键时才向外传递事件
-                if (keyEvent.isDpadLeft() && keyEvent.isKeyDown()) {
-                    drawerItemFocusRequesters[DrawerItem.Settings]?.requestFocus(scope)
-                    return@onPreviewKeyEvent true
-                }
-                false
-            },
+        modifier = modifier.focusRequester(defaultFocusRequester),
         topBar = {
             Box(
                 modifier = Modifier.padding(
@@ -252,10 +245,12 @@ fun SettingsDetail(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .onPreviewKeyEvent {
-                val result = it.key.nativeKeyCode == android.view.KeyEvent.KEYCODE_DPAD_LEFT
-                if (result) onFocusBackMenuList()
-                result
+            .onPreviewKeyEvent { keyEvent ->
+                if (keyEvent.isDpadLeft() && keyEvent.isKeyDown()) {
+                    onFocusBackMenuList()
+                    return@onPreviewKeyEvent true
+                }
+                false
             }
     ) {
         content()
