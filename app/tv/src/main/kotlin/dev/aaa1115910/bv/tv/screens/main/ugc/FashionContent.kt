@@ -3,7 +3,7 @@ package dev.aaa1115910.bv.tv.screens.main.ugc
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import dev.aaa1115910.biliapi.entity.ugc.UgcType
+import dev.aaa1115910.biliapi.entity.ugc.UgcTypeV2
 
 @Composable
 fun FashionContent(
@@ -19,12 +19,8 @@ fun FashionContent(
 
 @Composable
 fun FashionChildRegionButtons(modifier: Modifier = Modifier) {
-    val ugcTypes = listOf(
-        UgcType.FashionMakeup, UgcType.FashionCos, UgcType.FashionClothing, UgcType.FashionCatwalk
-    )
-
     UgcChildRegionButtons(
         modifier = modifier.fillMaxWidth(),
-        childUgcTypes = ugcTypes
+        childUgcTypes = UgcTypeV2.fashionList
     )
 }

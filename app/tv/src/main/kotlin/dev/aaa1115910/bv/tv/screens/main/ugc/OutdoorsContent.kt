@@ -6,21 +6,21 @@ import androidx.compose.ui.Modifier
 import dev.aaa1115910.biliapi.entity.ugc.UgcTypeV2
 
 @Composable
-fun EntContent(
+fun OutdoorsContent(
     modifier: Modifier = Modifier,
     state: UgcScaffoldState
 ) {
     UgcRegionScaffold(
         modifier = modifier,
         state = state,
-        childRegionButtons = { EntChildRegionButtons() }
+        childRegionButtons = { OutdoorsChildRegionButtons() }
     )
 }
 
 @Composable
-fun EntChildRegionButtons(modifier: Modifier = Modifier) {
+fun OutdoorsChildRegionButtons(modifier: Modifier = Modifier) {
     UgcChildRegionButtons(
         modifier = modifier.fillMaxWidth(),
-        childUgcTypes = UgcTypeV2.entList
+        childUgcTypes = UgcTypeV2.outdoorsList
     )
 }

@@ -3,7 +3,7 @@ package dev.aaa1115910.bv.tv.screens.main.ugc
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import dev.aaa1115910.biliapi.entity.ugc.UgcType
+import dev.aaa1115910.biliapi.entity.ugc.UgcTypeV2
 
 @Composable
 fun CarContent(
@@ -19,14 +19,8 @@ fun CarContent(
 
 @Composable
 fun CarChildRegionButtons(modifier: Modifier = Modifier) {
-    val ugcTypes = listOf(
-        UgcType.CarKnowledge, UgcType.CarStrategy, UgcType.CarNewEnergyVehicle,
-        UgcType.CarRacing, UgcType.CarModifiedVehicle, UgcType.CarMotorcycle,
-        UgcType.CarTouringCar, UgcType.CarLife
-    )
-
     UgcChildRegionButtons(
         modifier = modifier.fillMaxWidth(),
-        childUgcTypes = ugcTypes
+        childUgcTypes = UgcTypeV2.carList
     )
 }

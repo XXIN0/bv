@@ -33,8 +33,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import dev.aaa1115910.biliapi.entity.CarouselData
 import dev.aaa1115910.biliapi.entity.ugc.UgcItem
-import dev.aaa1115910.biliapi.entity.ugc.UgcType
-import dev.aaa1115910.biliapi.entity.ugc.region.UgcRegionPage
+import dev.aaa1115910.biliapi.entity.ugc.UgcTypeV2
+import dev.aaa1115910.biliapi.entity.ugc.region.UgcFeedPage
 import dev.aaa1115910.biliapi.repositories.UgcRepository
 import dev.aaa1115910.bv.component.UgcCarousel
 import dev.aaa1115910.bv.component.videocard.SmallVideoCard
@@ -182,7 +182,7 @@ data class UgcScaffoldState(
     val context: Context,
     val scope: CoroutineScope,
     val lazyListState: LazyListState,
-    val ugcType: UgcType,
+    val ugcType: UgcTypeV2,
     private val ugcRepository: UgcRepository
 ) {
     companion object {
@@ -191,7 +191,7 @@ data class UgcScaffoldState(
 
     val carouselItems = mutableStateListOf<CarouselData.CarouselItem>()
     val ugcItems = mutableStateListOf<UgcItem>()
-    var nextPage by mutableStateOf(UgcRegionPage())
+    var nextPage by mutableStateOf(UgcFeedPage())
     var hasMore by mutableStateOf(true)
     var updating by mutableStateOf(false)
     var showCarousel by mutableStateOf(true)
@@ -206,12 +206,13 @@ data class UgcScaffoldState(
         updating = true
         logger.fInfo { "load ugc $ugcType region data" }
         runCatching {
-            val data = ugcRepository.getRegionData(ugcType)
+            val carouselData = ugcRepository.getCarousel(ugcType)
+            val data = ugcRepository.getRegionFeedRcmd(ugcType, nextPage)
             carouselItems.clear()
             ugcItems.clear()
-            carouselItems.addAll(data.carouselData?.items ?: emptyList())
+            carouselItems.addAll(carouselData.items)
             ugcItems.addAll(data.items)
-            nextPage = data.next
+            nextPage = data.nextPage
             showCarousel = carouselItems.isNotEmpty()
         }.onFailure {
             logger.fInfo { "load $ugcType data failed: ${it.stackTraceToString()}" }
@@ -226,7 +227,7 @@ data class UgcScaffoldState(
     fun reloadAll() {
         logger.fInfo { "reload all $ugcType data" }
         scope.launch(Dispatchers.IO) {
-            nextPage = UgcRegionPage()
+            nextPage = UgcFeedPage()
             hasMore = true
             showCarousel = true
             carouselItems.clear()
@@ -239,9 +240,9 @@ data class UgcScaffoldState(
         if (!hasMore && updating) return
         updating = true
         runCatching {
-            val data = ugcRepository.getRegionMoreData(ugcType)
+            val data = ugcRepository.getRegionFeedRcmd(ugcType, nextPage)
             ugcItems.addAll(data.items)
-            nextPage = data.next
+            nextPage = data.nextPage
             hasMore = data.items.isNotEmpty()
         }.onFailure {
             logger.fInfo { "load more $ugcType data failed: ${it.stackTraceToString()}" }
@@ -258,7 +259,7 @@ fun rememberUgcScaffoldState(
     context: Context = LocalContext.current,
     scope: CoroutineScope = rememberCoroutineScope(),
     lazyListState: LazyListState = rememberLazyListState(),
-    ugcType: UgcType,
+    ugcType: UgcTypeV2,
     ugcRepository: UgcRepository = koinInject()
 ): UgcScaffoldState {
     return remember(

@@ -3,7 +3,7 @@ package dev.aaa1115910.bv.tv.screens.main.ugc
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import dev.aaa1115910.biliapi.entity.ugc.UgcType
+import dev.aaa1115910.biliapi.entity.ugc.UgcTypeV2
 
 @Composable
 fun KnowledgeContent(
@@ -19,14 +19,8 @@ fun KnowledgeContent(
 
 @Composable
 fun KnowledgeChildRegionButtons(modifier: Modifier = Modifier) {
-    val ugcTypes = listOf(
-        UgcType.KnowledgeScience, UgcType.KnowledgeSocialScience, UgcType.KnowledgeHumanity,
-        UgcType.KnowledgeBusiness, UgcType.KnowledgeCampus, UgcType.KnowledgeCareer,
-        UgcType.KnowledgeDesign, UgcType.KnowledgeSkill
-    )
-
     UgcChildRegionButtons(
         modifier = modifier.fillMaxWidth(),
-        childUgcTypes = ugcTypes
+        childUgcTypes = UgcTypeV2.knowledgeList
     )
 }

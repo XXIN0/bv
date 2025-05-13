@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.SuggestionChip
 import androidx.tv.material3.Text
-import dev.aaa1115910.biliapi.entity.ugc.UgcType
+import dev.aaa1115910.biliapi.entity.ugc.UgcTypeV2
 import dev.aaa1115910.bv.ui.theme.BVTheme
 import dev.aaa1115910.bv.util.createCustomInitialFocusRestorerModifiers
 import dev.aaa1115910.bv.util.fInfo
@@ -28,12 +28,12 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 @Composable
 fun UgcChildRegionButtons(
     modifier: Modifier = Modifier,
-    childUgcTypes: List<UgcType>
+    childUgcTypes: List<UgcTypeV2>
 ) {
     val context = LocalContext.current
     val logger = KotlinLogging.logger { }
 
-    val onClickChildRegion: (UgcType) -> Unit = { ugcType ->
+    val onClickChildRegion: (UgcTypeV2) -> Unit = { ugcType ->
         logger.fInfo { "onClickChildRegion: $ugcType" }
         "占位".toast(context)
     }
@@ -50,8 +50,8 @@ fun UgcChildRegionButtons(
 @Composable
 fun UgcChildRegionButtonsContent(
     modifier: Modifier = Modifier,
-    childUgcTypes: List<UgcType>,
-    onClickChildRegion: (UgcType) -> Unit
+    childUgcTypes: List<UgcTypeV2>,
+    onClickChildRegion: (UgcTypeV2) -> Unit
 ) {
     val context = LocalContext.current
     val focusRestorerModifiers = createCustomInitialFocusRestorerModifiers()
@@ -75,16 +75,10 @@ fun UgcChildRegionButtonsContent(
 @Preview(device = "id:tv_1080p")
 @Composable
 private fun UgcChildRegionButtonsPreview() {
-    val ugcTypes = listOf(
-        UgcType.Douga, UgcType.DougaMad, UgcType.DougaMmd, UgcType.DougaHandDrawn,
-        UgcType.DougaVoice, UgcType.DougaGarageKit, UgcType.DougaTokusatsu,
-        UgcType.DougaAcgnTalks, UgcType.DougaOther
-    )
-
     BVTheme {
         UgcChildRegionButtons(
             modifier = Modifier.fillMaxWidth(),
-            childUgcTypes = ugcTypes
+            childUgcTypes = UgcTypeV2.dougaList
         )
     }
 }

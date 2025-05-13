@@ -3,7 +3,7 @@ package dev.aaa1115910.bv.tv.screens.main.ugc
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import dev.aaa1115910.biliapi.entity.ugc.UgcType
+import dev.aaa1115910.biliapi.entity.ugc.UgcTypeV2
 
 @Composable
 fun GameContent(
@@ -19,13 +19,8 @@ fun GameContent(
 
 @Composable
 fun GameChildRegionButtons(modifier: Modifier = Modifier) {
-    val ugcTypes = listOf(
-        UgcType.GameStandAlone, UgcType.GameESports, UgcType.GameMobile, UgcType.GameOnline,
-        UgcType.GameBoard, UgcType.GameGmv, UgcType.GameMusic, UgcType.GameMugen
-    )
-
     UgcChildRegionButtons(
         modifier = modifier.fillMaxWidth(),
-        childUgcTypes = ugcTypes
+        childUgcTypes = UgcTypeV2.gameList
     )
 }

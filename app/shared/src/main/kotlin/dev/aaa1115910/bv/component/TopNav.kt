@@ -25,7 +25,7 @@ import androidx.tv.material3.TabRow
 import androidx.tv.material3.TabRowScope
 import androidx.tv.material3.Text
 import dev.aaa1115910.biliapi.entity.pgc.PgcType
-import dev.aaa1115910.biliapi.entity.ugc.UgcType
+import dev.aaa1115910.biliapi.entity.ugc.UgcTypeV2
 import dev.aaa1115910.bv.BVApp
 import dev.aaa1115910.bv.util.createCustomInitialFocusRestorerModifiers
 import dev.aaa1115910.bv.util.getDisplayName
@@ -119,23 +119,38 @@ enum class HomeTopNavItem(private val displayName: String) : TopNavItem {
     }
 }
 
-enum class UgcTopNavItem(private val ugcType: UgcType) : TopNavItem {
-    Douga(UgcType.Douga),
-    Game(UgcType.Game),
-    Kichiku(UgcType.Kichiku),
-    Music(UgcType.Music),
-    Dance(UgcType.Dance),
-    Cinephile(UgcType.Cinephile),
-    Ent(UgcType.Ent),
-    Knowledge(UgcType.Knowledge),
-    Tech(UgcType.Tech),
-    Information(UgcType.Information),
-    Food(UgcType.Food),
-    Life(UgcType.Life),
-    Car(UgcType.Car),
-    Fashion(UgcType.Fashion),
-    Sports(UgcType.Sports),
-    Animal(UgcType.Animal);
+enum class UgcTopNavItem(private val ugcType: UgcTypeV2) : TopNavItem {
+    Douga(UgcTypeV2.Douga),
+    Game(UgcTypeV2.Game),
+    Kichiku(UgcTypeV2.Kichiku),
+    Music(UgcTypeV2.Music),
+    Dance(UgcTypeV2.Dance),
+    Cinephile(UgcTypeV2.Cinephile),
+    Ent(UgcTypeV2.Ent),
+    Knowledge(UgcTypeV2.Knowledge),
+    Tech(UgcTypeV2.Tech),
+    Information(UgcTypeV2.Information),
+    Food(UgcTypeV2.Food),
+    ShortPlay(UgcTypeV2.Shortplay),
+    Car(UgcTypeV2.Car),
+    Fashion(UgcTypeV2.Fashion),
+    Sports(UgcTypeV2.Sports),
+    Animal(UgcTypeV2.Animal),
+    Vlog(UgcTypeV2.Vlog),
+    Painting(UgcTypeV2.Painting),
+    Ai(UgcTypeV2.Ai),
+    Home(UgcTypeV2.Home),
+    Outdoors(UgcTypeV2.Outdoors),
+    Gym(UgcTypeV2.Gym),
+    Handmake(UgcTypeV2.Handmake),
+    Travel(UgcTypeV2.Travel),
+    Rural(UgcTypeV2.Rural),
+    Parenting(UgcTypeV2.Parenting),
+    Health(UgcTypeV2.Health),
+    Emotion(UgcTypeV2.Emotion),
+    LifeJoy(UgcTypeV2.LifeJoy),
+    LifeExperience(UgcTypeV2.LifeExperience),
+    Mysticism(UgcTypeV2.Mysticism);
 
     override fun getDisplayName(context: Context): String {
         return ugcType.getDisplayName(context)
