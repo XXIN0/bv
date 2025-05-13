@@ -141,7 +141,10 @@ fun DrawerContent(
                         focusRestorerModifiers.childModifier
                     ),
                 colors = iconColors,
-                onClick = { selectedItem = item }
+                onClick = {
+                    selectedItem = item
+                    onFocusToContent()
+                }
             ) {
                 Icon(
                     imageVector = item.displayIcon,
@@ -156,7 +159,10 @@ fun DrawerContent(
                 .focusRequester(drawerItemFocusRequesters[DrawerItem.Settings]!!)
                 .onFocusChanged { if (it.hasFocus) selectedItem = DrawerItem.Settings },
             colors = iconColors,
-            onClick = { selectedItem = DrawerItem.Settings }
+            onClick = {
+                selectedItem = DrawerItem.Settings
+                onFocusToContent()
+            }
         ) {
             Icon(
                 imageVector = DrawerItem.Settings.displayIcon,
