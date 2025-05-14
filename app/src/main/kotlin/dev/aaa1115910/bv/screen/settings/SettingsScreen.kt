@@ -58,7 +58,7 @@ fun SettingsScreen(
             .focusRequester(defaultFocusRequester)
             .onPreviewKeyEvent { keyEvent ->
                 // 只有在最左边的选项，按左键时才向外传递事件
-                if (keyEvent.isKeyDown()) {
+                if (keyEvent.isKeyDown() && focusInNav) {
                     // 已经是最上或最下时拦截事件
                     if (keyEvent.isDpadUp() && currentMenu == SettingsMenuNavItem.entries.first()) {
                         return@onPreviewKeyEvent true
