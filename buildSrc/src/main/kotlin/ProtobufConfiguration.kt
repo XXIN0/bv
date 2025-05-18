@@ -39,7 +39,7 @@ object ProtobufConfiguration {
         val protoFiles = mutableSetOf<String>()
         rootDir.walk().forEach {
             if (it.isFile && it.extension == "proto") {
-                protoFiles.add(it.relativeTo(rootDir).path)
+                protoFiles.add(it.relativeTo(rootDir).invariantSeparatorsPath)
             }
         }
         return protoFiles

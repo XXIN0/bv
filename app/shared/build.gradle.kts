@@ -74,10 +74,10 @@ android {
     lint{
         targetSdk = AppConfiguration.targetSdk
     }
+}
 
-    ksp {
-        arg("room.schemaLocation", "$projectDir/schemas")
-    }
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
 }
 
 java {

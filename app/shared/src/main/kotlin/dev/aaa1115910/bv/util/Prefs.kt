@@ -285,6 +285,17 @@ object Prefs {
             dsm.getPreferenceFlow(PrefKeys.prefDefaultDanmakuMaskRequest).first()
         }
         set(value) = runBlocking { dsm.editPreference(PrefKeys.prefDefaultDanmakuMask, value) }
+
+    var enableFfmpegAudioRenderer: Boolean
+        get() = runBlocking {
+            dsm.getPreferenceFlow(PrefKeys.prefEnableFfmpegEndererRequest).first()
+        }
+        set(value) = runBlocking {
+            dsm.editPreference(
+                PrefKeys.prefEnableFfmpegAudioRenderer,
+                value
+            )
+        }
 }
 
 object PrefKeys {
@@ -327,6 +338,7 @@ object PrefKeys {
     val prefShowedRemoteControllerPanelDemoKey = booleanPreferencesKey("showed_rcpd")
     val prefPreferOfficialCdn = booleanPreferencesKey("prefer_official_cdn")
     val prefDefaultDanmakuMask = booleanPreferencesKey("prefer_enable_webmark")
+    val prefEnableFfmpegAudioRenderer = booleanPreferencesKey("enable_ffmpeg_audio_renderer")
 
     val prefIsLoginRequest = PreferenceRequest(prefIsLoginKey, false)
     val prefUidRequest = PreferenceRequest(prefUidKey, 0)
@@ -377,4 +389,5 @@ object PrefKeys {
         PreferenceRequest(prefShowedRemoteControllerPanelDemoKey, false)
     val prefPreferOfficialCdnRequest = PreferenceRequest(prefPreferOfficialCdn, false)
     val prefDefaultDanmakuMaskRequest = PreferenceRequest(prefDefaultDanmakuMask, false)
+    val prefEnableFfmpegEndererRequest = PreferenceRequest(prefEnableFfmpegAudioRenderer, false)
 }

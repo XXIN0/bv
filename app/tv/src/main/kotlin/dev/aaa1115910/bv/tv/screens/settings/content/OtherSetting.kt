@@ -39,6 +39,7 @@ fun OtherSetting(
     var showCookiesDialog by remember { mutableStateOf(false) }
     var showFps by remember { mutableStateOf(Prefs.showFps) }
     var updateAlpha by remember { mutableStateOf(Prefs.updateAlpha) }
+    var enableFfmpegAudioRenderer by remember { mutableStateOf(Prefs.enableFfmpegAudioRenderer) }
 
     Column(
         modifier = modifier.fillMaxSize(),
@@ -116,6 +117,17 @@ fun OtherSetting(
                         }
                     )
                 }
+            }
+            item {
+                SettingSwitchListItem(
+                    title = stringResource(R.string.settings_other_ffmpeg_audio_renderer_title),
+                    supportText = stringResource(R.string.settings_other_ffmpeg_audio_renderer_text),
+                    checked = enableFfmpegAudioRenderer,
+                    onCheckedChange = {
+                        enableFfmpegAudioRenderer = it
+                        Prefs.enableFfmpegAudioRenderer = it
+                    }
+                )
             }
         }
     }

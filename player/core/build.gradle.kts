@@ -56,7 +56,6 @@ java {
 }
 
 dependencies {
-    implementation(project(":player:shared"))
     implementation(androidx.activity.compose)
     implementation(androidx.compose.material)
     implementation(androidx.compose.tv.foundation)
@@ -72,6 +71,10 @@ dependencies {
     implementation(androidx.media3.ui)
     implementation(libs.logging)
     implementation(libs.material)
+    implementation(project(":libs:ffmpegDecoder"))
+    implementation(project(":player:shared"))
+    testImplementation(libs.kotlin.test)
+    androidTestImplementation(androidx.compose.ui.test.junit4)
     debugImplementation(androidx.compose.ui.test.manifest)
     debugImplementation(androidx.compose.ui.tooling)
 }
