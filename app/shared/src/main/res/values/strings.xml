@@ -8,6 +8,8 @@
 
     <string name="app_name">BV</string>
 
+    <string name="blacklist_user_toast">您已被开发者拉黑</string>
+
     <string name="codec_detail_audio_bitrate_range_title">音频码率范围</string>
     <string name="codec_detail_color_formats_title">颜色格式</string>
     <string name="codec_detail_hs_hardware">硬解</string>
