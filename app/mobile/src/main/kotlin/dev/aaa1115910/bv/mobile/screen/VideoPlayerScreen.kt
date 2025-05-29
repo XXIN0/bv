@@ -7,7 +7,19 @@ import android.view.WindowManager
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -20,12 +32,33 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ProvideTextStyle
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.windowsizeclass.WindowHeightSizeClass
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -55,9 +88,33 @@ import dev.aaa1115910.bv.mobile.component.reply.CommentItem
 import dev.aaa1115910.bv.mobile.component.reply.ReplySheetScaffold
 import dev.aaa1115910.bv.mobile.component.videocard.RelatedVideoItem
 import dev.aaa1115910.bv.mobile.theme.BVMobileTheme
-import dev.aaa1115910.bv.player.entity.*
+import dev.aaa1115910.bv.player.entity.LocalVideoPlayerConfigData
+import dev.aaa1115910.bv.player.entity.LocalVideoPlayerDanmakuMasksData
+import dev.aaa1115910.bv.player.entity.LocalVideoPlayerHistoryData
+import dev.aaa1115910.bv.player.entity.LocalVideoPlayerLoadStateData
+import dev.aaa1115910.bv.player.entity.LocalVideoPlayerLogsData
+import dev.aaa1115910.bv.player.entity.LocalVideoPlayerPaymentData
+import dev.aaa1115910.bv.player.entity.LocalVideoPlayerSeekThumbData
+import dev.aaa1115910.bv.player.entity.LocalVideoPlayerVideoInfoData
+import dev.aaa1115910.bv.player.entity.LocalVideoPlayerVideoShotData
+import dev.aaa1115910.bv.player.entity.VideoListPart
+import dev.aaa1115910.bv.player.entity.VideoListPgcEpisode
+import dev.aaa1115910.bv.player.entity.VideoListUgcEpisode
+import dev.aaa1115910.bv.player.entity.VideoPlayerConfigData
+import dev.aaa1115910.bv.player.entity.VideoPlayerDanmakuMasksData
+import dev.aaa1115910.bv.player.entity.VideoPlayerHistoryData
+import dev.aaa1115910.bv.player.entity.VideoPlayerLoadStateData
+import dev.aaa1115910.bv.player.entity.VideoPlayerLogsData
+import dev.aaa1115910.bv.player.entity.VideoPlayerPaymentData
+import dev.aaa1115910.bv.player.entity.VideoPlayerSeekThumbData
+import dev.aaa1115910.bv.player.entity.VideoPlayerVideoInfoData
+import dev.aaa1115910.bv.player.entity.VideoPlayerVideoShotData
 import dev.aaa1115910.bv.player.mobile.BvPlayer
-import dev.aaa1115910.bv.util.*
+import dev.aaa1115910.bv.util.Prefs
+import dev.aaa1115910.bv.util.fInfo
+import dev.aaa1115910.bv.util.formatPubTimeString
+import dev.aaa1115910.bv.util.ifElse
+import dev.aaa1115910.bv.util.swapList
 import dev.aaa1115910.bv.viewmodel.CommentViewModel
 import dev.aaa1115910.bv.viewmodel.SeasonViewModel
 import dev.aaa1115910.bv.viewmodel.VideoPlayerV3ViewModel
@@ -183,7 +240,6 @@ fun VideoPlayerScreen(
                         ),
                         LocalVideoPlayerHistoryData provides VideoPlayerHistoryData(
                             lastPlayed = playerViewModel.lastPlayed,
-                            showBackToStart = playerViewModel.lastPlayed > 0,
                         ),
                         LocalVideoPlayerPaymentData provides VideoPlayerPaymentData(
                             needPay = playerViewModel.needPay,

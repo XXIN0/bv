@@ -7,7 +7,25 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import dev.aaa1115910.bv.player.entity.*
+import dev.aaa1115910.bv.player.entity.LocalVideoPlayerConfigData
+import dev.aaa1115910.bv.player.entity.LocalVideoPlayerDanmakuMasksData
+import dev.aaa1115910.bv.player.entity.LocalVideoPlayerHistoryData
+import dev.aaa1115910.bv.player.entity.LocalVideoPlayerLoadStateData
+import dev.aaa1115910.bv.player.entity.LocalVideoPlayerLogsData
+import dev.aaa1115910.bv.player.entity.LocalVideoPlayerPaymentData
+import dev.aaa1115910.bv.player.entity.LocalVideoPlayerSeekThumbData
+import dev.aaa1115910.bv.player.entity.LocalVideoPlayerVideoInfoData
+import dev.aaa1115910.bv.player.entity.LocalVideoPlayerVideoShotData
+import dev.aaa1115910.bv.player.entity.VideoListItemData
+import dev.aaa1115910.bv.player.entity.VideoPlayerConfigData
+import dev.aaa1115910.bv.player.entity.VideoPlayerDanmakuMasksData
+import dev.aaa1115910.bv.player.entity.VideoPlayerHistoryData
+import dev.aaa1115910.bv.player.entity.VideoPlayerLoadStateData
+import dev.aaa1115910.bv.player.entity.VideoPlayerLogsData
+import dev.aaa1115910.bv.player.entity.VideoPlayerPaymentData
+import dev.aaa1115910.bv.player.entity.VideoPlayerSeekThumbData
+import dev.aaa1115910.bv.player.entity.VideoPlayerVideoInfoData
+import dev.aaa1115910.bv.player.entity.VideoPlayerVideoShotData
 import dev.aaa1115910.bv.player.tv.BvPlayer
 import dev.aaa1115910.bv.util.Prefs
 import dev.aaa1115910.bv.util.swapList
@@ -43,7 +61,6 @@ fun VideoPlayerV3Screen(
         ),
         LocalVideoPlayerHistoryData provides VideoPlayerHistoryData(
             lastPlayed = playerViewModel.lastPlayed,
-            showBackToStart = playerViewModel.lastPlayed > 0,
         ),
         LocalVideoPlayerPaymentData provides VideoPlayerPaymentData(
             needPay = playerViewModel.needPay,
@@ -115,8 +132,6 @@ fun VideoPlayerV3Screen(
                         seasonId = nextVideo.seasonId,
                         continuePlayNext = true
                     )
-                } else{
-                    (context as Activity).finish()
                 }
             },
             onExit = { (context as Activity).finish() },
