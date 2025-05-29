@@ -1,13 +1,7 @@
 package dev.aaa1115910.bv.viewmodel
 
 import android.net.Uri
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableLongStateOf
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.ViewModel
@@ -18,12 +12,7 @@ import com.kuaishou.akdanmaku.ui.DanmakuPlayer
 import dev.aaa1115910.biliapi.entity.ApiType
 import dev.aaa1115910.biliapi.entity.PlayData
 import dev.aaa1115910.biliapi.entity.danmaku.DanmakuMaskSegment
-import dev.aaa1115910.biliapi.entity.video.HeartbeatVideoType
-import dev.aaa1115910.biliapi.entity.video.Subtitle
-import dev.aaa1115910.biliapi.entity.video.SubtitleAiStatus
-import dev.aaa1115910.biliapi.entity.video.SubtitleAiType
-import dev.aaa1115910.biliapi.entity.video.SubtitleType
-import dev.aaa1115910.biliapi.entity.video.VideoShot
+import dev.aaa1115910.biliapi.entity.video.*
 import dev.aaa1115910.biliapi.http.BiliHttpApi
 import dev.aaa1115910.biliapi.repositories.VideoPlayRepository
 import dev.aaa1115910.bilisubtitle.SubtitleParser
@@ -31,19 +20,9 @@ import dev.aaa1115910.bilisubtitle.entity.SubtitleItem
 import dev.aaa1115910.bv.BVApp
 import dev.aaa1115910.bv.entity.proxy.ProxyArea
 import dev.aaa1115910.bv.player.AbstractVideoPlayer
-import dev.aaa1115910.bv.player.entity.Audio
-import dev.aaa1115910.bv.player.entity.DanmakuType
-import dev.aaa1115910.bv.player.entity.RequestState
-import dev.aaa1115910.bv.player.entity.Resolution
-import dev.aaa1115910.bv.player.entity.VideoAspectRatio
-import dev.aaa1115910.bv.player.entity.VideoCodec
+import dev.aaa1115910.bv.player.entity.*
 import dev.aaa1115910.bv.repository.VideoInfoRepository
-import dev.aaa1115910.bv.util.Prefs
-import dev.aaa1115910.bv.util.fException
-import dev.aaa1115910.bv.util.fInfo
-import dev.aaa1115910.bv.util.fWarn
-import dev.aaa1115910.bv.util.swapList
-import dev.aaa1115910.bv.util.swapListWithMainContext
+import dev.aaa1115910.bv.util.*
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
@@ -144,15 +123,15 @@ class VideoPlayerV3ViewModel(
         epid?.let { this.epid = it }
         seasonId?.let { this.seasonId = it }
         viewModelScope.launch(Dispatchers.Default) {
-            addLogs("加载视频中")
+            // addLogs("加载视频中")
             releaseDanmakuPlayer()
             initDanmakuPlayer()
-            addLogs("初始化弹幕引擎")
-            if (epid != null || seasonId != null) {
-                addLogs("av$avid，cid:$cid, epid:$epid, seasonId:$seasonId")
-            } else {
-                addLogs("av$avid，cid:$cid")
-            }
+            // addLogs("初始化弹幕引擎")
+            // if (epid != null || seasonId != null) {
+            //     addLogs("av$avid，cid:$cid, epid:$epid, seasonId:$seasonId")
+            // } else {
+            //     addLogs("av$avid，cid:$cid")
+            // }
 
             val lastPlayEnabledSubtitle = currentSubtitleId != -1L
             if (lastPlayEnabledSubtitle) {
@@ -161,7 +140,7 @@ class VideoPlayerV3ViewModel(
 
             updateSubtitle()
             loadPlayUrl(avid, cid, epid ?: 0, preferApi = Prefs.apiType, proxyArea = proxyArea)
-            addLogs("加载弹幕中")
+            // addLogs("加载弹幕中")
             loadDanmaku(cid)
             updateDanmakuMask()
 
@@ -288,7 +267,7 @@ class VideoPlayerV3ViewModel(
             loadState = RequestState.Failed
             logger.fException(it) { "Load video failed" }
         }.onSuccess {
-            addLogs("加载视频地址成功")
+            // addLogs("加载视频地址成功")
             loadState = RequestState.Success
             logger.fInfo { "Load play url success" }
         }
@@ -378,11 +357,11 @@ class VideoPlayerV3ViewModel(
             audioUrl = selectOfficialCdnUrl(audioUrls.filterNotNull())
         }
 
-        addLogs("video host: ${with(URI(videoUrl)) { "$scheme://$authority" }}")
-        addLogs("audio host: ${with(URI(audioUrl)) { "$scheme://$authority" }}")
+        // addLogs("video host: ${with(URI(videoUrl)) { "$scheme://$authority" }}")
+        // addLogs("audio host: ${with(URI(audioUrl)) { "$scheme://$authority" }}")
 
         logger.fInfo { "Select audio: $audioItem" }
-        addLogs("音频编码：${(Audio.fromCode(audioItem?.codecId ?: 0))?.getDisplayName(BVApp.context) ?: "未知"}")
+        // addLogs("音频编码：${(Audio.fromCode(audioItem?.codecId ?: 0))?.getDisplayName(BVApp.context) ?: "未知"}")
 
         withContext(Dispatchers.Main) {
             currentVideoHeight = videoItem?.height ?: 0
@@ -450,7 +429,7 @@ class VideoPlayerV3ViewModel(
                 availableSubtitle.addAll(subtitleData)
                 availableSubtitle.sortBy { it.id }
             }
-            addLogs("获取到 ${subtitleData.size} 条字幕: ${subtitleData.map { it.langDoc }}")
+            // addLogs("获取到 ${subtitleData.size} 条字幕: ${subtitleData.map { it.langDoc }}")
             logger.fInfo { "Update subtitle size: ${subtitleData.size}" }
         }.onFailure {
             addLogs("获取字幕失败：${it.localizedMessage}")
@@ -545,7 +524,7 @@ class VideoPlayerV3ViewModel(
                 addLogs("加载字幕 $subtitleName 失败: ${it.localizedMessage}")
             }.onSuccess {
                 logger.fInfo { "Load subtitle $subtitleName success" }
-                addLogs("加载字幕 $subtitleName 成功，数量: ${currentSubtitleData.size}")
+                // addLogs("加载字幕 $subtitleName 成功，数量: ${currentSubtitleData.size}")
             }
         }
     }
