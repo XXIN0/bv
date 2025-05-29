@@ -17,6 +17,10 @@ BV 是一款 [哔哩哔哩](https://www.bilibili.com) 的第三方 `Android` 应
 本项目也会持续合入作者的更新，以及不断加入我自己的定制修改
 
 ![screenshots.webp](screenshots.webp)
+增加个人页
+![screenshots.webp](screenshots1.webp)
+
+[//]: # (<img alt="新增个人页" src="screenshots1.webp" width="500" />)
 
 # 修改
 主要在原bv的基础上做了一些符合我个人喜好的修改，包括：
@@ -33,7 +37,6 @@ BV 是一款 [哔哩哔哩](https://www.bilibili.com) 的第三方 `Android` 应
 5. 设置页不再作为单独页面独立打开（本意是为了解决跳转不到设置入口而改的，但问题原因不在这里，这个改动还是保留了）
 6. 移除 ugc、pgc 页面的轮播组件，避免抢占焦点导致无法跳到设置页的问题（应该也没什么人看轮播内容把）（Thanksfor@TangYanxin）
 7. 首页 Tab 新增个人页（包含历史、收藏、稍后再看、追番），设置页中增加首页 Tab 顺序调整功能
-<img alt="新增个人页" src="screenshots1.webp" width="500" />
 8. 屏蔽移动端入口，只进入TV端（原作者的移动端支持还在搭建中，暂时先不开放）
 9. 在视频信息页增加点赞、投币入口（fork自@Frost Hu、感谢此作者）
 10. 修改默认弹幕大小透明度为0.75，显示区域为40%、播放时出现信息时返回键关闭信息区域、精简初始化播放过程的日志
