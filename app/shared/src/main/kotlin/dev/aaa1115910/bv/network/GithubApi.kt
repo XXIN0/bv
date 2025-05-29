@@ -2,7 +2,6 @@ package dev.aaa1115910.bv.network
 
 import dev.aaa1115910.bv.BuildConfig
 import dev.aaa1115910.bv.network.entity.Release
-import dev.aaa1115910.bv.util.Prefs
 import io.ktor.client.HttpClient
 import io.ktor.client.content.ProgressListener
 import io.ktor.client.engine.okhttp.OkHttp
@@ -29,7 +28,7 @@ import java.io.File
 
 object GithubApi {
     private var endPoint = "api.github.com"
-    private const val OWNER = "aaa1115910"
+    private const val OWNER = "Leelion96"
     private const val REPO = "bv"
     private lateinit var client: HttpClient
     private val json = Json {
@@ -38,7 +37,7 @@ object GithubApi {
         prettyPrint = true
     }
     private val isDebug get() = BuildConfig.DEBUG
-    private val isAlpha get() = Prefs.updateAlpha
+    private val isAlpha get() = false//Prefs.updateAlpha
 
     init {
         createClient()

@@ -1,22 +1,11 @@
 package dev.aaa1115910.bv.tv.screens.main
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
+import androidx.compose.animation.*
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -24,38 +13,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import dev.aaa1115910.biliapi.entity.ugc.UgcTypeV2
 import dev.aaa1115910.bv.component.TopNav
 import dev.aaa1115910.bv.component.UgcTopNavItem
-import dev.aaa1115910.bv.tv.screens.main.ugc.AiContent
-import dev.aaa1115910.bv.tv.screens.main.ugc.AnimalContent
-import dev.aaa1115910.bv.tv.screens.main.ugc.CarContent
-import dev.aaa1115910.bv.tv.screens.main.ugc.CinephileContent
-import dev.aaa1115910.bv.tv.screens.main.ugc.DanceContent
-import dev.aaa1115910.bv.tv.screens.main.ugc.DougaContent
-import dev.aaa1115910.bv.tv.screens.main.ugc.EmotionContent
-import dev.aaa1115910.bv.tv.screens.main.ugc.EntContent
-import dev.aaa1115910.bv.tv.screens.main.ugc.FashionContent
-import dev.aaa1115910.bv.tv.screens.main.ugc.FoodContent
-import dev.aaa1115910.bv.tv.screens.main.ugc.GameContent
-import dev.aaa1115910.bv.tv.screens.main.ugc.GymContent
-import dev.aaa1115910.bv.tv.screens.main.ugc.HandmakeContent
-import dev.aaa1115910.bv.tv.screens.main.ugc.HealthContent
-import dev.aaa1115910.bv.tv.screens.main.ugc.InformationContent
-import dev.aaa1115910.bv.tv.screens.main.ugc.KichikuContent
-import dev.aaa1115910.bv.tv.screens.main.ugc.KnowledgeContent
-import dev.aaa1115910.bv.tv.screens.main.ugc.LifeExperienceContent
-import dev.aaa1115910.bv.tv.screens.main.ugc.LifeJoyContent
-import dev.aaa1115910.bv.tv.screens.main.ugc.MusicContent
-import dev.aaa1115910.bv.tv.screens.main.ugc.MysticismContent
-import dev.aaa1115910.bv.tv.screens.main.ugc.OutdoorsContent
-import dev.aaa1115910.bv.tv.screens.main.ugc.PaintingContent
-import dev.aaa1115910.bv.tv.screens.main.ugc.ParentingContent
-import dev.aaa1115910.bv.tv.screens.main.ugc.RuralContent
-import dev.aaa1115910.bv.tv.screens.main.ugc.ShortPlayContent
-import dev.aaa1115910.bv.tv.screens.main.ugc.SportsContent
-import dev.aaa1115910.bv.tv.screens.main.ugc.TechContent
-import dev.aaa1115910.bv.tv.screens.main.ugc.TravelContent
-import dev.aaa1115910.bv.tv.screens.main.ugc.UgcScaffoldState
-import dev.aaa1115910.bv.tv.screens.main.ugc.VlogContent
-import dev.aaa1115910.bv.tv.screens.main.ugc.rememberUgcScaffoldState
+import dev.aaa1115910.bv.tv.screens.main.ugc.*
 import dev.aaa1115910.bv.util.fInfo
 import dev.aaa1115910.bv.util.requestFocus
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -65,7 +23,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun UgcContent(
     modifier: Modifier = Modifier,
-    navFocusRequester: FocusRequester,
+    contentFocusRequester: FocusRequester,
     dougaState: UgcScaffoldState = rememberUgcScaffoldState(ugcType = UgcTypeV2.Douga),
     gameState: UgcScaffoldState = rememberUgcScaffoldState(ugcType = UgcTypeV2.Game),
     kichikuState: UgcScaffoldState = rememberUgcScaffoldState(ugcType = UgcTypeV2.Kichiku),
@@ -100,17 +58,32 @@ fun UgcContent(
 ) {
     val scope = rememberCoroutineScope()
     val logger = KotlinLogging.logger("UgcContent")
-
-    var selectedTab by remember { mutableStateOf(UgcTopNavItem.Douga) }
     var focusOnContent by remember { mutableStateOf(false) }
+    var topNavHasFocus by remember { mutableStateOf(false) }
 
-    //启动时刷新数据
-    LaunchedEffect(Unit) {
-
+    // 使用remember的key参数确保只有在DrawerItem.UGC的tab状态变化时才重新计算
+    val initialSelectedTabIndex = currentSelectedTabs[DrawerItem.UGC]
+    var selectedTab by remember(initialSelectedTabIndex) {
+        mutableStateOf(
+            (initialSelectedTabIndex as? UgcTopNavItem)
+                ?.let { UgcTopNavItem.entries.getOrNull(it.ordinal) }
+                ?: UgcTopNavItem.Douga
+        )
     }
 
-    BackHandler(focusOnContent) {
+    // 当选中标签变化时，保存到全局状态
+    LaunchedEffect(selectedTab) {
+        currentSelectedTabs[DrawerItem.UGC] = selectedTab
+    }
+
+    val navFocusRequester = remember { FocusRequester() }
+
+    BackHandler(focusOnContent || topNavHasFocus) {
         logger.fInfo { "onFocusBackToNav" }
+        if (topNavHasFocus) {
+            drawerItemFocusRequesters[DrawerItem.UGC]?.requestFocus(scope)
+            return@BackHandler
+        }
         navFocusRequester.requestFocus(scope)
         // scroll to top
         scope.launch(Dispatchers.Main) {
@@ -158,9 +131,11 @@ fun UgcContent(
         topBar = {
             TopNav(
                 modifier = Modifier
-                    .focusRequester(navFocusRequester),
+                    .focusRequester(navFocusRequester)
+                    .onFocusChanged { topNavHasFocus = it.hasFocus },
                 items = UgcTopNavItem.entries,
                 isLargePadding = !focusOnContent,
+                initialSelectedItem = selectedTab,
                 onSelectedChanged = { nav ->
                     selectedTab = nav as UgcTopNavItem
                 },
@@ -198,6 +173,10 @@ fun UgcContent(
                         UgcTopNavItem.LifeExperience -> lifeExperienceState.reloadAll()
                         UgcTopNavItem.Mysticism -> mysticismState.reloadAll()
                     }
+                },
+                onLeftKeyEvent = {
+                    // 顶部栏最左侧按左键时，跳转到左侧导航栏
+                    drawerItemFocusRequesters[DrawerItem.UGC]?.requestFocus(scope)
                 }
             )
         }
@@ -205,6 +184,7 @@ fun UgcContent(
         Box(
             modifier = Modifier
                 .padding(innerPadding)
+                .focusRequester(contentFocusRequester)
                 .onFocusChanged { focusOnContent = it.hasFocus }
         ) {
             AnimatedContent(

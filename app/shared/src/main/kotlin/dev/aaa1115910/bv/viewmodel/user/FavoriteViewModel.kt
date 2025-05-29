@@ -10,11 +10,7 @@ import dev.aaa1115910.biliapi.entity.FavoriteFolderMetadata
 import dev.aaa1115910.biliapi.entity.FavoriteItemType
 import dev.aaa1115910.biliapi.repositories.FavoriteRepository
 import dev.aaa1115910.bv.entity.carddata.VideoCardData
-import dev.aaa1115910.bv.util.Prefs
-import dev.aaa1115910.bv.util.addWithMainContext
-import dev.aaa1115910.bv.util.fInfo
-import dev.aaa1115910.bv.util.fWarn
-import dev.aaa1115910.bv.util.swapList
+import dev.aaa1115910.bv.util.*
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -39,16 +35,34 @@ class FavoriteViewModel(
 
     var updatingFolders by mutableStateOf(false)
     var updatingFolderItems by mutableStateOf(false)
+    private var updateFolderJob: Job? = null
 
     init {
         updateFoldersInfo()
     }
 
-    private fun updateFoldersInfo() {
+    fun clearData() {
+        favoriteFolderMetadataList.clear()
+        favorites.clear()
+        currentFavoriteFolderMetadata = null
+        pageSize = 20
+        pageNumber = 1
+        hasMore = true
+        updatingFolders = false
+        updatingFolderItems = false
+        updateFolderJob = null
+        updateJob = null
+    }
+
+    fun updateFoldersInfo(force: Boolean = false) {
+        if (force) {
+            updateFolderJob?.cancel()
+            updatingFolders = false
+        }
         if (updatingFolders) return
         updatingFolders = true
         logger.fInfo { "Updating favorite folders" }
-        viewModelScope.launch(Dispatchers.IO) {
+        updateFolderJob = viewModelScope.launch(Dispatchers.IO) {
             runCatching {
                 val favoriteFolderMetadataList =
                     favoriteRepository.getAllFavoriteFolderMetadataList(

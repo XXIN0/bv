@@ -1,31 +1,15 @@
 package dev.aaa1115910.bv.tv.screens.main
 
-import androidx.compose.foundation.basicMarquee
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Movie
-import androidx.compose.material.icons.filled.OndemandVideo
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -33,35 +17,48 @@ import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.tv.material3.DrawerValue
-import androidx.tv.material3.Icon
-import androidx.tv.material3.NavigationDrawer
-import androidx.tv.material3.NavigationDrawerItem
-import androidx.tv.material3.NavigationDrawerScope
-import androidx.tv.material3.Surface
-import androidx.tv.material3.SurfaceDefaults
-import androidx.tv.material3.Text
-import androidx.tv.material3.rememberDrawerState
+import androidx.tv.material3.*
 import coil.compose.AsyncImage
+import dev.aaa1115910.bv.component.TopNavItem
+import dev.aaa1115910.bv.component.createCustomInitialFocusRestorerModifiers
+import dev.aaa1115910.bv.component.ifElse
 import dev.aaa1115910.bv.ui.theme.BVTheme
-import dev.aaa1115910.bv.util.ifElse
 import dev.aaa1115910.bv.util.isDpadRight
+import dev.aaa1115910.bv.util.isDpadUp
 import dev.aaa1115910.bv.util.isKeyDown
 
+// 创建全局的FocusRequester映射表，方便外部使用
+val drawerItemFocusRequesters = mutableMapOf<DrawerItem, FocusRequester>().apply {
+    DrawerItem.entries.filter { it != DrawerItem.User }
+        .forEach { item ->
+            this[item] = FocusRequester()
+        }
+}
+
+// 用于记住每个内容页当前选中的Tab
+val currentSelectedTabs = mutableStateMapOf<DrawerItem, TopNavItem>()
+
 @Composable
-fun NavigationDrawerScope.DrawerContent(
+fun DrawerContent(
     modifier: Modifier = Modifier,
     isLogin: Boolean = false,
     avatar: String = "",
-    username: String = "",
     onDrawerItemChanged: (DrawerItem) -> Unit = {},
-    onOpenSettings: () -> Unit = {},
     onShowUserPanel: () -> Unit = {},
     onFocusToContent: () -> Unit = {},
     onLogin: () -> Unit = {}
 ) {
     var selectedItem by remember { mutableStateOf(DrawerItem.Home) }
-    val centerFocusRequester = remember { FocusRequester() }
+    var focusInUser by remember { mutableStateOf(false) }
+    val focusRestorerModifiers = createCustomInitialFocusRestorerModifiers()
+    val itemColors = NavigationDrawerItemDefaults.colors()
+    val iconColors = IconButtonDefaults.colors(
+        containerColor = when {
+            selectedItem == DrawerItem.User -> itemColors.selectedContentColor
+            else -> itemColors.containerColor
+        },
+        focusedContainerColor = itemColors.focusedContainerColor
+    )
 
     LaunchedEffect(selectedItem) {
         onDrawerItemChanged(selectedItem)
@@ -69,109 +66,108 @@ fun NavigationDrawerScope.DrawerContent(
 
     Column(
         modifier = modifier
+            .width(44.dp)
             .fillMaxHeight()
-            .padding(12.dp)
+            .padding(vertical = 12.dp)
             .onPreviewKeyEvent { keyEvent ->
-                if (keyEvent.isDpadRight()) {
-                    if (keyEvent.isKeyDown()) {
+                if (keyEvent.isKeyDown()) {
+                    if (keyEvent.isDpadRight()) {
                         onFocusToContent()
+                        return@onPreviewKeyEvent true
+                    }
+                    // 已经是最上时拦截事件
+                    if (keyEvent.isDpadUp() && focusInUser) {
                         return@onPreviewKeyEvent true
                     }
                 }
                 false
             },
-        verticalArrangement = Arrangement.SpaceBetween
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
-        NavigationDrawerItem(
-            modifier = Modifier,
+        // 用户头像
+        IconButton(
+            modifier = Modifier.onFocusChanged {
+                focusInUser = it.hasFocus
+            },
+            colors = iconColors,
             onClick = {
                 if (isLogin) {
                     onShowUserPanel()
                 } else {
                     onLogin()
                 }
-            },
-            selected = selectedItem == DrawerItem.User,
-            leadingContent = {
-                if (isLogin) {
-                    Surface(
+            }
+        ) {
+            if (isLogin) {
+                Surface(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape),
+                    colors = SurfaceDefaults.colors(
+                        containerColor = Color.Gray
+                    )
+                ) {
+                    AsyncImage(
                         modifier = Modifier
                             .size(40.dp)
                             .clip(CircleShape),
-                        colors = SurfaceDefaults.colors(
-                            containerColor = Color.Gray
-                        )
-                    ) {
-                        AsyncImage(
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(CircleShape),
-                            model = avatar,
-                            contentDescription = null,
-                            contentScale = ContentScale.FillBounds
-                        )
-                    }
-                } else {
-                    Icon(
-                        imageVector = DrawerItem.User.displayIcon,
-                        contentDescription = null
+                        model = avatar,
+                        contentDescription = null,
+                        contentScale = ContentScale.FillBounds
                     )
                 }
-            }
-        ) {
-            Text(
-                modifier = Modifier
-                    .basicMarquee(),
-                text = if (isLogin) username
-                else DrawerItem.User.displayName,
-                maxLines = 1
-            )
-        }
-        LazyColumn(
-            modifier = Modifier.focusRestorer(centerFocusRequester),
-            verticalArrangement = Arrangement.Center
-        ) {
-            listOf(
-                DrawerItem.Search,
-                DrawerItem.Home,
-                DrawerItem.UGC,
-                DrawerItem.PGC,
-            ).forEach { item ->
-                item {
-                    NavigationDrawerItem(
-                        modifier = Modifier
-                            .onFocusChanged { if (it.hasFocus) selectedItem = item }
-                            .ifElse(
-                                item == DrawerItem.Home,
-                                Modifier.focusRequester(centerFocusRequester)
-                            ),
-                        onClick = { selectedItem = item },
-                        selected = selectedItem == item,
-                        leadingContent = {
-                            Icon(
-                                imageVector = item.displayIcon,
-                                contentDescription = null
-                            )
-                        }
-                    ) {
-                        Text(text = item.displayName)
-                    }
-                }
-            }
-        }
-        NavigationDrawerItem(
-            modifier = Modifier,
-            onClick = onOpenSettings,
-            selected = false,
-            leadingContent = {
+            } else {
                 Icon(
-                    imageVector = DrawerItem.Settings.displayIcon,
+                    imageVector = DrawerItem.User.displayIcon,
                     contentDescription = null
                 )
             }
+        }
+        Spacer(modifier = Modifier.weight(1f))
+
+        listOf(
+            DrawerItem.Search,
+            DrawerItem.Home,
+            DrawerItem.UGC,
+            DrawerItem.PGC,
+        ).forEach { item ->
+            IconButton(
+                modifier = Modifier
+                    .focusRequester(drawerItemFocusRequesters[item]!!)
+                    .onFocusChanged { if (it.hasFocus) selectedItem = item }
+                    .ifElse(
+                        item == DrawerItem.Home,
+                        focusRestorerModifiers.childModifier
+                    ),
+                colors = iconColors,
+                onClick = {
+                    selectedItem = item
+                    onFocusToContent()
+                }
+            ) {
+                Icon(
+                    imageVector = item.displayIcon,
+                    contentDescription = null
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.weight(1f))
+        IconButton(
+            modifier = Modifier
+                .focusRequester(drawerItemFocusRequesters[DrawerItem.Settings]!!)
+                .onFocusChanged { if (it.hasFocus) selectedItem = DrawerItem.Settings },
+            colors = iconColors,
+            onClick = {
+                selectedItem = DrawerItem.Settings
+                onFocusToContent()
+            }
         ) {
-            Text(text = DrawerItem.Settings.displayName)
+            Icon(
+                imageVector = DrawerItem.Settings.displayIcon,
+                contentDescription = null
+            )
         }
     }
 }
@@ -190,28 +186,8 @@ enum class DrawerItem(
 
 @Preview(device = "id:tv_1080p")
 @Composable
-private fun DrawerContentClosedPreview() {
-    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+private fun DrawerContentPreview() {
     BVTheme {
-        NavigationDrawer(
-            drawerContent = {
-                DrawerContent()
-            },
-            drawerState = drawerState
-        ) { }
-    }
-}
-
-@Preview(device = "id:tv_1080p")
-@Composable
-private fun DrawerContentOpenPreview() {
-    val drawerState = rememberDrawerState(initialValue = DrawerValue.Open)
-    BVTheme {
-        NavigationDrawer(
-            drawerContent = {
-                DrawerContent()
-            },
-            drawerState = drawerState
-        ) { }
+        DrawerContent()
     }
 }

@@ -311,6 +311,10 @@ object Prefs {
     val themeTypeFlow: Flow<ThemeType>
         get() = dsm.getPreferenceFlow(PrefKeys.prefThemeTypeRequest)
             .transform { ordinal -> emit(ThemeType.entries[ordinal]) }
+
+    var homeTabOrder: String
+        get() = runBlocking { dsm.getPreferenceFlow(PrefKeys.prefHomeTabOrderRequest).first() }
+        set(value) = runBlocking { dsm.editPreference(PrefKeys.prefHomeTabOrderKey, value) }
 }
 
 object PrefKeys {
@@ -356,6 +360,7 @@ object PrefKeys {
     val prefEnableFfmpegAudioRenderer = booleanPreferencesKey("enable_ffmpeg_audio_renderer")
     val prefBlacklistUserKey = booleanPreferencesKey("blacklist_user")
     val prefThemeTypeKey = intPreferencesKey("theme_type")
+    val prefHomeTabOrderKey = stringPreferencesKey("home_tab_order")
 
     val prefIsLoginRequest = PreferenceRequest(prefIsLoginKey, false)
     val prefUidRequest = PreferenceRequest(prefUidKey, 0)
@@ -409,4 +414,5 @@ object PrefKeys {
     val prefEnableFfmpegEndererRequest = PreferenceRequest(prefEnableFfmpegAudioRenderer, false)
     val prefBlacklistUserRequest = PreferenceRequest(prefBlacklistUserKey, false)
     val prefThemeTypeRequest = PreferenceRequest(prefThemeTypeKey, ThemeType.Auto.ordinal)
+    val prefHomeTabOrderRequest = PreferenceRequest(prefHomeTabOrderKey, "")
 }

@@ -227,6 +227,10 @@
     <string name="settings_ui_density_title">界面缩放</string>
     <string name="settings_ui_theme_type_text">更改主题样式</string>
     <string name="settings_ui_theme_type_title">主题</string>
+    <string name="settings_ui_home_tab_order_text">自定义首页Tab的显示顺序</string>
+    <string name="settings_ui_home_tab_order_title">首页标签顺序</string>
+    <string name="settings_ui_home_tab_order_desc_choose">点击选择要移动的标签</string>
+    <string name="settings_ui_home_tab_order_desc_confirm">使用左右键移动标签，再次点击保存位置</string>
     <string name="settings_version_check_update_button">爷要更新</string>
     <string name="settings_version_current_version">当前版本: %1$s</string>
     <string name="settings_version_latest_version">最新版本: %1$s</string>
@@ -682,4 +686,7 @@
     <string name="video_player_referer">https://www.bilibili.com</string>
     <string name="video_player_user_agent_client">Bilibili Freedoooooom/MarkII</string>
     <string name="video_player_user_agent_http">Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36</string>
+
+
+    <string name="about_statement">该改版是给带键鼠的安卓设备使用的，严禁tv端使用，若有tv端使用者，请在24小时内删除否则后果自负,若有tv端使用需求，请下载官方小电视！</string>
 </resources>

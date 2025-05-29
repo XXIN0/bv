@@ -1,34 +1,18 @@
 package dev.aaa1115910.bv.tv.screens.settings
 
 import android.content.Context
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.nativeKeyCode
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -51,11 +35,12 @@ import dev.aaa1115910.bv.tv.screens.settings.content.StorageSetting
 import dev.aaa1115910.bv.tv.screens.settings.content.UISetting
 import dev.aaa1115910.bv.tv.screens.settings.content.VideoCodecSetting
 import dev.aaa1115910.bv.ui.theme.BVTheme
-import dev.aaa1115910.bv.util.requestFocus
+import dev.aaa1115910.bv.util.*
 
 @Composable
 fun SettingsScreen(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    defaultFocusRequester: FocusRequester,
 ) {
     val showLargeTitle by remember { derivedStateOf { true } }
     val titleFontSize by animateFloatAsState(
@@ -65,14 +50,38 @@ fun SettingsScreen(
 
     var currentMenu by remember { mutableStateOf(SettingsMenuNavItem.Resolution) }
     var focusInNav by remember { mutableStateOf(false) }
+    var focusInContent by remember { mutableStateOf(false) }
+
+    val scope = rememberCoroutineScope()
+    BackHandler(enabled = focusInNav || focusInContent) {
+        if (focusInNav) {
+            drawerItemFocusRequesters[DrawerItem.Settings]?.requestFocus(scope)
+        } else {
+            focusInNav = true
+        }
+    }
 
     Scaffold(
-        modifier = modifier,
+        modifier = modifier
+            .focusRequester(defaultFocusRequester)
+            .onPreviewKeyEvent { keyEvent ->
+                // 只有在最左边的选项，按左键时才向外传递事件
+                if (keyEvent.isKeyDown() && focusInNav) {
+                    // 已经是最上或最下时拦截事件
+                    if (keyEvent.isDpadUp() && currentMenu == SettingsMenuNavItem.entries.first()) {
+                        return@onPreviewKeyEvent true
+                    }
+                    if (keyEvent.isDpadDown() && currentMenu == SettingsMenuNavItem.entries.last()) {
+                        return@onPreviewKeyEvent true
+                    }
+                }
+                false
+            },
         topBar = {
             Box(
                 modifier = Modifier.padding(
                     start = 48.dp,
-                    top = 24.dp,
+                    top = 12.dp,
                     bottom = 8.dp,
                     end = 48.dp
                 )
@@ -97,6 +106,7 @@ fun SettingsScreen(
         Row(
             modifier = Modifier.padding(innerPadding)
         ) {
+            val contentFocusRequester = remember { FocusRequester() }
             SettingsNav(
                 modifier = Modifier
                     .onFocusChanged { focusInNav = it.hasFocus }
@@ -104,10 +114,15 @@ fun SettingsScreen(
                     .fillMaxHeight(),
                 currentMenu = currentMenu,
                 onMenuChanged = { currentMenu = it },
-                isFocusing = focusInNav
+                isFocusing = focusInNav,
+                onClickItem = {
+                    contentFocusRequester.requestFocus(scope)
+                }
             )
             SettingContent(
                 modifier = Modifier
+                    .focusRequester(contentFocusRequester)
+                    .onFocusChanged { focusInContent = it.hasFocus }
                     .weight(5f)
                     .fillMaxSize(),
                 onBackNav = { focusInNav = true },
@@ -122,7 +137,8 @@ fun SettingsNav(
     modifier: Modifier = Modifier,
     currentMenu: SettingsMenuNavItem,
     onMenuChanged: (SettingsMenuNavItem) -> Unit,
-    isFocusing: Boolean
+    isFocusing: Boolean,
+    onClickItem: () -> Unit
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -130,10 +146,6 @@ fun SettingsNav(
 
     LaunchedEffect(isFocusing) {
         if (isFocusing) focusRequester.requestFocus(scope)
-    }
-
-    LaunchedEffect(Unit) {
-        focusRequester.requestFocus(scope)
     }
 
     LazyColumn(
@@ -153,7 +165,8 @@ fun SettingsNav(
                     selected = currentMenu == item,
                     onFocus = {
                         onMenuChanged(item)
-                    }
+                    },
+                    onClick = onClickItem
                 )
             }
         }
@@ -261,10 +274,12 @@ fun SettingsDetail(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .onPreviewKeyEvent {
-                val result = it.key.nativeKeyCode == android.view.KeyEvent.KEYCODE_DPAD_LEFT
-                if (result) onFocusBackMenuList()
-                result
+            .onPreviewKeyEvent { keyEvent ->
+                if (keyEvent.isDpadLeft() && keyEvent.isKeyDown()) {
+                    onFocusBackMenuList()
+                    return@onPreviewKeyEvent true
+                }
+                false
             }
     ) {
         content()
