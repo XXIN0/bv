@@ -9,58 +9,25 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import de.schnettler.datastore.manager.DataStoreManager
 import dev.aaa1115910.biliapi.http.BiliHttpProxyApi
-import dev.aaa1115910.biliapi.repositories.AuthRepository
-import dev.aaa1115910.biliapi.repositories.ChannelRepository
-import dev.aaa1115910.biliapi.repositories.CommentRepository
-import dev.aaa1115910.biliapi.repositories.FavoriteRepository
-import dev.aaa1115910.biliapi.repositories.HistoryRepository
-import dev.aaa1115910.biliapi.repositories.LoginRepository
-import dev.aaa1115910.biliapi.repositories.PgcRepository
-import dev.aaa1115910.biliapi.repositories.RecommendVideoRepository
-import dev.aaa1115910.biliapi.repositories.SearchRepository
-import dev.aaa1115910.biliapi.repositories.SeasonRepository
-import dev.aaa1115910.biliapi.repositories.ToViewRepository
-import dev.aaa1115910.biliapi.repositories.UgcRepository
-import dev.aaa1115910.biliapi.repositories.VideoDetailRepository
-import dev.aaa1115910.biliapi.repositories.VideoPlayRepository
+import dev.aaa1115910.biliapi.repositories.*
 import dev.aaa1115910.bv.dao.AppDatabase
 import dev.aaa1115910.bv.entity.AuthData
 import dev.aaa1115910.bv.entity.db.UserDB
 import dev.aaa1115910.bv.network.HttpServer
 import dev.aaa1115910.bv.repository.UserRepository
 import dev.aaa1115910.bv.repository.VideoInfoRepository
-import dev.aaa1115910.bv.util.BlacklistUtil
-import dev.aaa1115910.bv.util.FirebaseUtil
-import dev.aaa1115910.bv.util.LogCatcherUtil
-import dev.aaa1115910.bv.util.Prefs
-import dev.aaa1115910.bv.util.toast
-import dev.aaa1115910.bv.viewmodel.CommentViewModel
-import dev.aaa1115910.bv.viewmodel.DynamicDetailViewModel
-import dev.aaa1115910.bv.viewmodel.SeasonViewModel
-import dev.aaa1115910.bv.viewmodel.TagViewModel
-import dev.aaa1115910.bv.viewmodel.UserSwitchViewModel
-import dev.aaa1115910.bv.viewmodel.UserViewModel
-import dev.aaa1115910.bv.viewmodel.VideoPlayerV3ViewModel
+import dev.aaa1115910.bv.util.*
+import dev.aaa1115910.bv.viewmodel.*
 import dev.aaa1115910.bv.viewmodel.home.DynamicViewModel
 import dev.aaa1115910.bv.viewmodel.home.PopularViewModel
 import dev.aaa1115910.bv.viewmodel.home.RecommendViewModel
 import dev.aaa1115910.bv.viewmodel.index.PgcIndexViewModel
 import dev.aaa1115910.bv.viewmodel.login.AppQrLoginViewModel
 import dev.aaa1115910.bv.viewmodel.login.SmsLoginViewModel
-import dev.aaa1115910.bv.viewmodel.pgc.PgcAnimeViewModel
-import dev.aaa1115910.bv.viewmodel.pgc.PgcDocumentaryViewModel
-import dev.aaa1115910.bv.viewmodel.pgc.PgcGuoChuangViewModel
-import dev.aaa1115910.bv.viewmodel.pgc.PgcMovieViewModel
-import dev.aaa1115910.bv.viewmodel.pgc.PgcTvViewModel
-import dev.aaa1115910.bv.viewmodel.pgc.PgcVarietyViewModel
+import dev.aaa1115910.bv.viewmodel.pgc.*
 import dev.aaa1115910.bv.viewmodel.search.SearchInputViewModel
 import dev.aaa1115910.bv.viewmodel.search.SearchResultViewModel
-import dev.aaa1115910.bv.viewmodel.user.FavoriteViewModel
-import dev.aaa1115910.bv.viewmodel.user.FollowViewModel
-import dev.aaa1115910.bv.viewmodel.user.FollowingSeasonViewModel
-import dev.aaa1115910.bv.viewmodel.user.HistoryViewModel
-import dev.aaa1115910.bv.viewmodel.user.ToViewViewModel
-import dev.aaa1115910.bv.viewmodel.user.UserSpaceViewModel
+import dev.aaa1115910.bv.viewmodel.user.*
 import dev.aaa1115910.bv.viewmodel.video.VideoDetailViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -177,12 +144,15 @@ val appModule = module {
     single { VideoInfoRepository() }
     single { ChannelRepository() }
     single { FavoriteRepository(get()) }
+    single { LikeRepository(get()) }
+    single { CoinRepository(get())}
+    single { OneClickTripleActionRepository(get()) }
     single { HistoryRepository(get(), get()) }
     single { ToViewRepository(get(), get()) }
     single { SearchRepository(get(), get()) }
     single { VideoPlayRepository(get(), get()) }
     single { RecommendVideoRepository(get(), get()) }
-    single { VideoDetailRepository(get(), get(), get()) }
+    single { VideoDetailRepository(get(), get(), get(), get(), get()) }
     single { SeasonRepository(get()) }
     single { dev.aaa1115910.biliapi.repositories.UserRepository(get(), get()) }
     single { PgcRepository() }

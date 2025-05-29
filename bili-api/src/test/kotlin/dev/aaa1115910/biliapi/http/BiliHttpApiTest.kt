@@ -303,7 +303,8 @@ internal class BiliHttpApiTest {
                 BiliHttpApi.sendVideoCoin(
                     avid = 170001,
                     csrf = BILI_JCT,
-                    sessData = SESSDATA
+                    sessData = SESSDATA,
+                    buvid3 = BUVID,
                 )
             )
         }

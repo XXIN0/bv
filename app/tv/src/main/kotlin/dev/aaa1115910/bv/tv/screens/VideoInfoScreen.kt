@@ -5,23 +5,11 @@ import android.content.res.Configuration
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -37,19 +25,7 @@ import androidx.compose.material.icons.rounded.ViewModule
 import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableLongStateOf
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -74,19 +50,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.tv.material3.ClickableSurfaceDefaults
-import androidx.tv.material3.ExperimentalTvMaterial3Api
-import androidx.tv.material3.Glow
-import androidx.tv.material3.Icon
-import androidx.tv.material3.LocalContentColor
-import androidx.tv.material3.LocalTextStyle
-import androidx.tv.material3.MaterialTheme
-import androidx.tv.material3.SuggestionChip
-import androidx.tv.material3.Surface
-import androidx.tv.material3.SurfaceDefaults
-import androidx.tv.material3.Tab
-import androidx.tv.material3.TabRow
-import androidx.tv.material3.Text
+import androidx.tv.material3.*
 import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
@@ -99,11 +63,12 @@ import dev.aaa1115910.biliapi.entity.video.VideoDetail
 import dev.aaa1115910.biliapi.entity.video.VideoPage
 import dev.aaa1115910.biliapi.entity.video.season.Episode
 import dev.aaa1115910.biliapi.http.BiliPlusHttpApi
-import dev.aaa1115910.biliapi.repositories.FavoriteRepository
-import dev.aaa1115910.biliapi.repositories.UserRepository
+import dev.aaa1115910.biliapi.repositories.*
 import dev.aaa1115910.bv.R
 import dev.aaa1115910.bv.component.UpIcon
+import dev.aaa1115910.bv.component.buttons.CoinButton
 import dev.aaa1115910.bv.component.buttons.FavoriteButton
+import dev.aaa1115910.bv.component.buttons.LikeButton
 import dev.aaa1115910.bv.component.videocard.VideosRow
 import dev.aaa1115910.bv.entity.proxy.ProxyArea
 import dev.aaa1115910.bv.player.entity.VideoListItem
@@ -117,17 +82,7 @@ import dev.aaa1115910.bv.tv.activities.video.UpInfoActivity
 import dev.aaa1115910.bv.tv.activities.video.VideoInfoActivity
 import dev.aaa1115910.bv.tv.util.launchPlayerActivity
 import dev.aaa1115910.bv.ui.theme.BVTheme
-import dev.aaa1115910.bv.util.Prefs
-import dev.aaa1115910.bv.util.fDebug
-import dev.aaa1115910.bv.util.fInfo
-import dev.aaa1115910.bv.util.fWarn
-import dev.aaa1115910.bv.util.focusedBorder
-import dev.aaa1115910.bv.util.formatPubTimeString
-import dev.aaa1115910.bv.util.ifElse
-import dev.aaa1115910.bv.util.requestFocus
-import dev.aaa1115910.bv.util.swapList
-import dev.aaa1115910.bv.util.swapListWithMainContext
-import dev.aaa1115910.bv.util.toast
+import dev.aaa1115910.bv.util.*
 import dev.aaa1115910.bv.viewmodel.video.VideoDetailViewModel
 import dev.aaa1115910.bv.viewmodel.video.VideoInfoState
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -146,6 +101,9 @@ fun VideoInfoScreen(
     videoDetailViewModel: VideoDetailViewModel = koinViewModel(),
     userRepository: UserRepository = getKoin().get(),
     favoriteRepository: FavoriteRepository = getKoin().get(),
+    likeRepository: LikeRepository = getKoin().get(),
+    coinRepository: CoinRepository = getKoin().get(),
+    oneClickTripleActionRepository: OneClickTripleActionRepository = getKoin().get()
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -172,6 +130,9 @@ fun VideoInfoScreen(
     }
 
     var favorited by remember { mutableStateOf(false) }
+    var liked by remember { mutableStateOf(false) }
+    var coined by remember { mutableStateOf(false) }
+
     val favoriteFolderMetadataList = remember { mutableStateListOf<FavoriteFolderMetadata>() }
     val videoInFavoriteFolderIds = remember { mutableStateListOf<Long>() }
 
@@ -294,6 +255,69 @@ fun VideoInfoScreen(
         favorited = videoDetailViewModel.videoDetail?.userActions?.favorite ?: false
     }
 
+    suspend fun updateVideoLikedData(like: Boolean): Boolean {
+        return withContext(Dispatchers.IO) {
+            runCatching {
+                logger.info { "Check video ${videoDetailViewModel.videoDetail?.aid} is liked" }
+                likeRepository.updateVideoLiked(
+                    like = like,
+                    aid = videoDetailViewModel.videoDetail!!.aid,
+                    bvid = videoDetailViewModel.videoDetail!!.bvid
+                )
+            }.onFailure { throwable ->
+                logger.fInfo { "Update video liked status failed: ${throwable.stackTraceToString()}" }
+            }.onSuccess {
+                logger.fInfo { "Update video liked status success" }
+            }.isSuccess // 返回成功与否
+        }
+    }
+
+    suspend fun sendVideoCoin(): Boolean {
+        return withContext(Dispatchers.IO) {
+            runCatching {
+                logger.info { "Check video ${videoDetailViewModel.videoDetail?.aid} is liked" }
+                coinRepository.sendVideoCoin(
+                    aid = videoDetailViewModel.videoDetail!!.aid,
+                    bvid = videoDetailViewModel.videoDetail!!.bvid
+                )
+            }.onFailure { throwable ->
+                logger.fInfo { "Send video coin failed: ${throwable.stackTraceToString()}" }
+            }.onSuccess {
+                logger.fInfo { "Send video coin success" }
+            }.isSuccess // 返回成功与否
+        }
+    }
+
+    suspend fun sendVideoOneClickTripleAction(): Boolean {
+        return withContext(Dispatchers.IO) {
+            runCatching {
+                val data =
+                    oneClickTripleActionRepository.sendVideoOneClickTripleAction(
+                        aid = videoDetailViewModel.videoDetail!!.aid,
+                        bvid = videoDetailViewModel.videoDetail!!.bvid
+                    )
+                if (data != null) {
+                    liked = data.like
+                    coined = data.coin
+                    favorited = data.fav
+                    if (favorited) addVideoToDefaultFavoriteFolder()
+                }
+            }.onFailure { throwable ->
+                logger.fInfo { "Send video one click triple action failed: ${throwable.stackTraceToString()}" }
+            }.onSuccess {
+                logger.fInfo { "Send video one click triple action success" }
+            }.isSuccess
+        }
+    }
+
+    val updateVideoIsLiked = {
+        liked = videoDetailViewModel.videoDetail?.userActions?.like ?: false
+    }
+
+    val updateVideoIsCoined = {
+        coined = videoDetailViewModel.videoDetail?.userActions?.coin ?: false
+    }
+
     val updateUgcSeasonSectionVideoList: (Int) -> Unit = { sectionIndex ->
         val partVideoList = mutableListOf<VideoListItem>()
         videoDetailViewModel.videoDetail!!.ugcSeason!!.sections[sectionIndex].episodes.mapIndexed { epIndex, episode ->
@@ -359,6 +383,8 @@ fun VideoInfoScreen(
                 runCatching {
                     videoDetailViewModel.loadDetail(aid, fromSeason)
                     updateVideoIsFavoured()
+                    updateVideoIsLiked()
+                    updateVideoIsCoined()
                     setHistory()
                     if (Prefs.isLogin) fetchFavoriteData(aid)
 
@@ -518,6 +544,8 @@ fun VideoInfoScreen(
                             isFollowing = isFollowing,
                             tags = videoDetailViewModel.videoDetail!!.tags,
                             isFavorite = favorited,
+                            isLiked = liked,
+                            isCoined = coined,
                             userFavoriteFolders = favoriteFolderMetadataList,
                             favoriteFolderIds = videoInFavoriteFolderIds,
                             onClickCover = {
@@ -600,6 +628,31 @@ fun VideoInfoScreen(
                                 updateVideoFavoriteData(it)
                                 favorited = it.isNotEmpty()
                                 videoInFavoriteFolderIds.swapList(it)
+                            },
+                            onUpdateLiked = {
+                                scope.launch {
+                                    if (updateVideoLikedData(it))
+                                        liked = it
+                                    else
+                                        "点赞失败".toast(context)
+                                }
+                            },
+                            onSendVideoCoin = {
+                                scope.launch {
+                                    if (!coined) {
+                                        if (sendVideoCoin()) coined = true
+                                        else "投币失败".toast(context)
+                                    }
+                                }
+                            },
+                            onSendVideoOneClickTripleAction = {
+                                scope.launch {
+                                    if (sendVideoOneClickTripleAction()) {
+                                        "一键三连".toast(context)
+                                    } else {
+                                        "一键三连失败".toast(context)
+                                    }
+                                }
                             }
                         )
                     }
@@ -752,6 +805,8 @@ fun VideoInfoData(
     isFollowing: Boolean,
     tags: List<Tag>,
     isFavorite: Boolean,
+    isLiked: Boolean,
+    isCoined: Boolean,
     userFavoriteFolders: List<FavoriteFolderMetadata> = emptyList(),
     favoriteFolderIds: List<Long> = emptyList(),
     onClickCover: () -> Unit,
@@ -760,7 +815,10 @@ fun VideoInfoData(
     onDelFollow: () -> Unit,
     onClickTip: (Tag) -> Unit,
     onAddToDefaultFavoriteFolder: () -> Unit,
-    onUpdateFavoriteFolders: (List<Long>) -> Unit
+    onUpdateFavoriteFolders: (List<Long>) -> Unit,
+    onUpdateLiked: (Boolean) -> Unit,
+    onSendVideoCoin: () -> Unit,
+    onSendVideoOneClickTripleAction: () -> Unit
 ) {
     val localDensity = LocalDensity.current
     var heightIs by remember { mutableStateOf(0.dp) }
@@ -781,10 +839,16 @@ fun VideoInfoData(
             shape = ClickableSurfaceDefaults.shape(
                 shape = MaterialTheme.shapes.large,
             ),
-            glow = ClickableSurfaceDefaults.glow(
-                focusedGlow = Glow(
-                    elevationColor = MaterialTheme.colorScheme.inverseSurface,
-                    elevation = 16.dp
+//            glow = ClickableSurfaceDefaults.glow(
+//                focusedGlow = Glow(
+//                    elevationColor = MaterialTheme.colorScheme.inverseSurface,
+//                    elevation = 16.dp
+//                )
+//            ),
+            border = ClickableSurfaceDefaults.border(
+                focusedBorder = Border(
+                    border = BorderStroke(width = 3.dp, color = MaterialTheme.colorScheme.border),
+                    shape = MaterialTheme.shapes.large
                 )
             )
         ) {
@@ -849,6 +913,16 @@ fun VideoInfoData(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
+                LikeButton(
+                    isLiked = isLiked,
+                    onClick = { onUpdateLiked(!isLiked) },
+                    onLongClick = { onSendVideoOneClickTripleAction() })
+                Spacer(modifier = Modifier.width(5.dp))
+                CoinButton(
+                    isCoined = isCoined,
+                    onClick = onSendVideoCoin,
+                )
+                Spacer(modifier = Modifier.width(5.dp))
                 FavoriteButton(
                     isFavorite = isFavorite,
                     userFavoriteFolders = userFavoriteFolders,
@@ -857,7 +931,8 @@ fun VideoInfoData(
                     onUpdateFavoriteFolders = onUpdateFavoriteFolders
                 )
                 LazyRow(
-                    contentPadding = PaddingValues(horizontal = 16.dp),
+                    modifier = Modifier.weight(1f),
+                    contentPadding = PaddingValues(horizontal = 5.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(items = tags) { tag ->

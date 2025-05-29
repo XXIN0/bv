@@ -2,6 +2,8 @@ package dev.aaa1115910.biliapi.http
 
 import com.tfowl.ktor.client.plugins.JsoupPlugin
 import dev.aaa1115910.biliapi.entity.pgc.PgcType
+import dev.aaa1115910.biliapi.http.BiliHttpApi.getRegionDynamic
+import dev.aaa1115910.biliapi.http.SeasonIndexType.entries
 import dev.aaa1115910.biliapi.http.entity.BiliResponse
 import dev.aaa1115910.biliapi.http.entity.BiliResponseWithoutData
 import dev.aaa1115910.biliapi.http.entity.danmaku.DanmakuData
@@ -15,57 +17,20 @@ import dev.aaa1115910.biliapi.http.entity.index.IndexResultData
 import dev.aaa1115910.biliapi.http.entity.pgc.PgcFeedData
 import dev.aaa1115910.biliapi.http.entity.pgc.PgcFeedV3Data
 import dev.aaa1115910.biliapi.http.entity.pgc.PgcWebInitialStateData
-import dev.aaa1115910.biliapi.http.entity.region.RegionBanner
-import dev.aaa1115910.biliapi.http.entity.region.RegionDynamic
-import dev.aaa1115910.biliapi.http.entity.region.RegionDynamicList
-import dev.aaa1115910.biliapi.http.entity.region.RegionFeedRcmd
-import dev.aaa1115910.biliapi.http.entity.region.RegionLocs
+import dev.aaa1115910.biliapi.http.entity.region.*
 import dev.aaa1115910.biliapi.http.entity.reply.CommentData
 import dev.aaa1115910.biliapi.http.entity.reply.CommentReplyData
-import dev.aaa1115910.biliapi.http.entity.search.AppSearchSquareData
-import dev.aaa1115910.biliapi.http.entity.search.KeywordSuggest
-import dev.aaa1115910.biliapi.http.entity.search.SearchResultData
-import dev.aaa1115910.biliapi.http.entity.search.SearchTendingData
-import dev.aaa1115910.biliapi.http.entity.search.WebSearchSquareData
-import dev.aaa1115910.biliapi.http.entity.season.AppSeasonData
-import dev.aaa1115910.biliapi.http.entity.season.FollowingSeasonAppData
-import dev.aaa1115910.biliapi.http.entity.season.FollowingSeasonWebData
-import dev.aaa1115910.biliapi.http.entity.season.SeasonFollowData
-import dev.aaa1115910.biliapi.http.entity.season.WebSeasonData
+import dev.aaa1115910.biliapi.http.entity.search.*
+import dev.aaa1115910.biliapi.http.entity.season.*
 import dev.aaa1115910.biliapi.http.entity.toview.ToViewData
-import dev.aaa1115910.biliapi.http.entity.user.AppSpaceVideoData
-import dev.aaa1115910.biliapi.http.entity.user.FollowAction
-import dev.aaa1115910.biliapi.http.entity.user.FollowActionSource
-import dev.aaa1115910.biliapi.http.entity.user.MyInfoData
-import dev.aaa1115910.biliapi.http.entity.user.RelationData
-import dev.aaa1115910.biliapi.http.entity.user.RelationStat
-import dev.aaa1115910.biliapi.http.entity.user.UserCardData
-import dev.aaa1115910.biliapi.http.entity.user.UserFollowData
-import dev.aaa1115910.biliapi.http.entity.user.UserInfoData
-import dev.aaa1115910.biliapi.http.entity.user.WebSpaceVideoData
+import dev.aaa1115910.biliapi.http.entity.user.*
 import dev.aaa1115910.biliapi.http.entity.user.favorite.FavoriteFolderInfo
 import dev.aaa1115910.biliapi.http.entity.user.favorite.FavoriteFolderInfoListData
 import dev.aaa1115910.biliapi.http.entity.user.favorite.FavoriteItemIdListResponse
 import dev.aaa1115910.biliapi.http.entity.user.favorite.UserFavoriteFoldersData
 import dev.aaa1115910.biliapi.http.entity.user.garb.Equip
 import dev.aaa1115910.biliapi.http.entity.user.garb.EquipPart
-import dev.aaa1115910.biliapi.http.entity.video.AddCoin
-import dev.aaa1115910.biliapi.http.entity.video.CheckSentCoin
-import dev.aaa1115910.biliapi.http.entity.video.CheckVideoFavoured
-import dev.aaa1115910.biliapi.http.entity.video.PlayUrlData
-import dev.aaa1115910.biliapi.http.entity.video.PlayUrlV2Data
-import dev.aaa1115910.biliapi.http.entity.video.PopularVideoData
-import dev.aaa1115910.biliapi.http.entity.video.RelatedVideosResponse
-import dev.aaa1115910.biliapi.http.entity.video.SetVideoFavorite
-import dev.aaa1115910.biliapi.http.entity.video.Tag
-import dev.aaa1115910.biliapi.http.entity.video.TagDetail
-import dev.aaa1115910.biliapi.http.entity.video.TagTopVideosResponse
-import dev.aaa1115910.biliapi.http.entity.video.Timeline
-import dev.aaa1115910.biliapi.http.entity.video.TimelineAppData
-import dev.aaa1115910.biliapi.http.entity.video.VideoDetail
-import dev.aaa1115910.biliapi.http.entity.video.VideoInfo
-import dev.aaa1115910.biliapi.http.entity.video.VideoMoreInfo
-import dev.aaa1115910.biliapi.http.entity.video.VideoShot
+import dev.aaa1115910.biliapi.http.entity.video.*
 import dev.aaa1115910.biliapi.http.entity.web.NavResponseData
 import dev.aaa1115910.biliapi.http.util.BiliAppConf
 import dev.aaa1115910.biliapi.http.util.encApiSign
@@ -77,12 +42,8 @@ import io.ktor.client.plugins.HttpRequestRetry
 import io.ktor.client.plugins.compression.ContentEncoding
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
+import io.ktor.client.request.*
 import io.ktor.client.request.forms.FormDataContent
-import io.ktor.client.request.get
-import io.ktor.client.request.header
-import io.ktor.client.request.parameter
-import io.ktor.client.request.post
-import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsChannel
 import io.ktor.client.statement.bodyAsText
 import io.ktor.client.statement.readRawBytes
@@ -713,7 +674,8 @@ object BiliHttpApi {
         multiply: Int = 1,
         like: Boolean = false,
         csrf: String,
-        sessData: String
+        sessData: String,
+        buvid3: String
     ): Pair<Boolean, String> {
         require(avid != null || bvid != null) { "avid and bvid cannot be null at the same time" }
         val response = client.post("/x/web-interface/coin/add") {
@@ -727,7 +689,7 @@ object BiliHttpApi {
                         append("csrf", csrf)
                     }
                 ))
-            header("Cookie", "SESSDATA=$sessData;")
+            header("Cookie", "SESSDATA=$sessData;buvid3=$buvid3")
         }.body<BiliResponse<AddCoin>>()
         return Pair(response.code == 0, response.message)
     }
@@ -801,6 +763,32 @@ object BiliHttpApi {
         return runCatching {
             response.getResponseData().favoured
         }.getOrDefault(false)
+    }
+
+    /**
+     * 为视频[avid]或[bvid]一键三连
+     *
+     * @param csrf bili_jct
+     * @param sessData SESSDATA
+     */
+    suspend fun sendVideoOneClickTripleAction(
+        avid: Long? = null,
+        bvid: String? = null,
+        csrf: String,
+        sessData: String
+    ): Triple<Boolean, String, OneClickTripleAction?> {
+        require(avid != null || bvid != null) { "avid and bvid cannot be null at the same time" }
+        val response = client.post("/x/web-interface/archive/like/triple") {
+            setBody(FormDataContent(
+                Parameters.build {
+                    avid?.let { append("aid", "$it") }
+                    bvid?.let { append("bvid", it) }
+                    append("csrf", csrf)
+                }
+            ))
+            header("Cookie", "SESSDATA=$sessData;")
+        }.body<BiliResponse<OneClickTripleAction>>()
+        return Triple(response.code == 0, response.message, response.data)
     }
 
     /**
