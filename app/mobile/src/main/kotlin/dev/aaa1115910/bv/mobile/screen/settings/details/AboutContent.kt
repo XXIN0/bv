@@ -3,21 +3,11 @@ package dev.aaa1115910.bv.mobile.screen.settings.details
 import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -62,7 +52,7 @@ fun AboutContent(
             ListItem(
                 modifier = Modifier
                     .clickable {
-                        val url = "https://github.com/aaa1115910/bv"
+                        val url = "https://github.com/Leelion96/bv"
                         val intent = Intent(Intent.ACTION_VIEW, url.toUri())
                         context.startActivity(intent)
                     },
@@ -70,7 +60,7 @@ fun AboutContent(
                     Text("项目地址")
                 },
                 supportingContent = {
-                    Text(text = "https://github.com/aaa1115910/bv")
+                    Text(text = "https://github.com/Leelion96/bv")
                 },
             )
         }
