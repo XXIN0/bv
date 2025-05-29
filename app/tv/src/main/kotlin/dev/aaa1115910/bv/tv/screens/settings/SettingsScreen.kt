@@ -23,17 +23,9 @@ import androidx.tv.material3.ListItem
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import dev.aaa1115910.bv.R
-import dev.aaa1115910.bv.tv.screens.settings.content.AboutSetting
-import dev.aaa1115910.bv.tv.screens.settings.content.ApiSetting
-import dev.aaa1115910.bv.tv.screens.settings.content.AudioSetting
-import dev.aaa1115910.bv.tv.screens.settings.content.InfoSetting
-import dev.aaa1115910.bv.tv.screens.settings.content.NetworkSetting
-import dev.aaa1115910.bv.tv.screens.settings.content.OtherSetting
-import dev.aaa1115910.bv.tv.screens.settings.content.PlayerTypeSetting
-import dev.aaa1115910.bv.tv.screens.settings.content.ResolutionSetting
-import dev.aaa1115910.bv.tv.screens.settings.content.StorageSetting
-import dev.aaa1115910.bv.tv.screens.settings.content.UISetting
-import dev.aaa1115910.bv.tv.screens.settings.content.VideoCodecSetting
+import dev.aaa1115910.bv.tv.screens.main.DrawerItem
+import dev.aaa1115910.bv.tv.screens.main.drawerItemFocusRequesters
+import dev.aaa1115910.bv.tv.screens.settings.content.*
 import dev.aaa1115910.bv.ui.theme.BVTheme
 import dev.aaa1115910.bv.util.*
 

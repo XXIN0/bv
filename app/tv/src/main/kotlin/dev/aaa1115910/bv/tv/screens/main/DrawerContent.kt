@@ -21,8 +21,8 @@ import androidx.tv.material3.*
 import coil.compose.AsyncImage
 import dev.aaa1115910.bv.component.TopNavItem
 import dev.aaa1115910.bv.component.createCustomInitialFocusRestorerModifiers
-import dev.aaa1115910.bv.component.ifElse
 import dev.aaa1115910.bv.ui.theme.BVTheme
+import dev.aaa1115910.bv.util.ifElse
 import dev.aaa1115910.bv.util.isDpadRight
 import dev.aaa1115910.bv.util.isDpadUp
 import dev.aaa1115910.bv.util.isKeyDown

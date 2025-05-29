@@ -14,10 +14,10 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.unit.dp
 import dev.aaa1115910.bv.component.HomeTopNavItem
 import dev.aaa1115910.bv.component.TopNav
-import dev.aaa1115910.bv.screen.main.home.DynamicsScreen
-import dev.aaa1115910.bv.screen.main.home.PopularScreen
-import dev.aaa1115910.bv.screen.main.home.RecommendScreen
-import dev.aaa1115910.bv.screen.main.home.UserScreen
+import dev.aaa1115910.bv.tv.screens.main.home.UserScreen
+import dev.aaa1115910.bv.tv.screens.main.home.DynamicsScreen
+import dev.aaa1115910.bv.tv.screens.main.home.PopularScreen
+import dev.aaa1115910.bv.tv.screens.main.home.RecommendScreen
 import dev.aaa1115910.bv.util.Prefs
 import dev.aaa1115910.bv.util.fInfo
 import dev.aaa1115910.bv.util.requestFocus

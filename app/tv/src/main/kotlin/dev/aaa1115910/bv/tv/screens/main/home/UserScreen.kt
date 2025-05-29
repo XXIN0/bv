@@ -1,4 +1,4 @@
-package dev.aaa1115910.bv.screen.main.home
+package dev.aaa1115910.bv.tv.screens.main.home
 
 import android.content.Context
 import androidx.activity.compose.BackHandler
@@ -15,12 +15,12 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.unit.dp
 import dev.aaa1115910.bv.component.TopNav
 import dev.aaa1115910.bv.component.TopNavItem
-import dev.aaa1115910.bv.screen.main.DrawerItem
-import dev.aaa1115910.bv.screen.main.drawerItemFocusRequesters
-import dev.aaa1115910.bv.screen.user.FavoriteScreen
-import dev.aaa1115910.bv.screen.user.FollowingSeasonScreen
-import dev.aaa1115910.bv.screen.user.HistoryScreen
-import dev.aaa1115910.bv.screen.user.ToViewScreen
+import dev.aaa1115910.bv.tv.screens.main.DrawerItem
+import dev.aaa1115910.bv.tv.screens.main.drawerItemFocusRequesters
+import dev.aaa1115910.bv.tv.screens.user.FavoriteScreen
+import dev.aaa1115910.bv.tv.screens.user.FollowingSeasonScreen
+import dev.aaa1115910.bv.tv.screens.user.HistoryScreen
+import dev.aaa1115910.bv.tv.screens.user.ToViewScreen
 import dev.aaa1115910.bv.util.requestFocus
 import dev.aaa1115910.bv.viewmodel.user.FavoriteViewModel
 import dev.aaa1115910.bv.viewmodel.user.FollowingSeasonViewModel

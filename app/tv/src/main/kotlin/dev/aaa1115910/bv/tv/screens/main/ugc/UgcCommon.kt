@@ -1,8 +1,10 @@
 package dev.aaa1115910.bv.tv.screens.main.ugc
 
 import android.content.Context
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier

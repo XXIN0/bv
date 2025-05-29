@@ -4,10 +4,12 @@ import android.content.Context
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.focusRestorer
+import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.*
@@ -19,6 +21,37 @@ import dev.aaa1115910.bv.util.ifElse
 import dev.aaa1115910.bv.util.isDpadLeft
 import dev.aaa1115910.bv.util.isKeyDown
 
+data class FocusRequesterModifiers(
+    val parentModifier: Modifier,
+    val childModifier: Modifier
+)
+
+@OptIn(ExperimentalComposeUiApi::class)
+@Composable
+fun createCustomInitialFocusRestorerModifiers(): FocusRequesterModifiers {
+    val focusRequester = remember { FocusRequester() }
+    val childFocusRequester = remember { FocusRequester() }
+
+    val parentModifier = Modifier
+        .focusRequester(focusRequester)
+        .focusProperties {
+            exit = {
+                focusRequester.saveFocusedChild()
+                FocusRequester.Default
+            }
+            enter = {
+                if (!focusRequester.restoreFocusedChild())
+                    childFocusRequester
+                else
+                    FocusRequester.Cancel
+            }
+        }
+
+    val childModifier = Modifier.focusRequester(childFocusRequester)
+
+    return FocusRequesterModifiers(parentModifier, childModifier)
+}
+
 @Composable
 fun TopNav(
     modifier: Modifier = Modifier,
@@ -29,7 +62,7 @@ fun TopNav(
     onClick: (TopNavItem) -> Unit = {},
     onLeftKeyEvent: () -> Unit = {}
 ) {
-    val focusRequester = createCustomInitialFocusRestorerModifiers()
+    val focusRestorerModifiers = createCustomInitialFocusRestorerModifiers()
 
     var selectedNav by remember(initialSelectedItem) {
         mutableStateOf(initialSelectedItem ?: items.first())
@@ -77,7 +110,7 @@ fun TopNav(
             items.forEachIndexed { index, tab ->
                 NavItemTab(
                     modifier = Modifier
-                        .ifElse(index == 0, Modifier.focusRequester(focusRequester)),
+                        .ifElse(index == 0, focusRestorerModifiers.childModifier),
                     topNavItem = tab,
                     selected = index == selectedTabIndex,
                     onFocus = {
