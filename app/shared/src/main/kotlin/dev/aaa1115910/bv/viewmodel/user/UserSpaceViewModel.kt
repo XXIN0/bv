@@ -1,14 +1,10 @@
 package dev.aaa1115910.bv.viewmodel.user
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dev.aaa1115910.biliapi.entity.user.SpaceVideoPage
 import dev.aaa1115910.biliapi.entity.user.SpaceVideo
+import dev.aaa1115910.biliapi.entity.user.SpaceVideoPage
 import dev.aaa1115910.biliapi.repositories.UserRepository
 import dev.aaa1115910.bv.entity.carddata.VideoCardData
 import dev.aaa1115910.bv.util.Prefs
@@ -59,6 +55,8 @@ class UserSpaceViewModel(
                         //TODO 这里在改造 app 端接口时，没找到在空间内显示为合集样式封面的UP,没法进一步测试接口
                         cover = spaceVideoItem.cover,
                         upName = spaceVideoItem.author,
+                        play = with(spaceVideoItem.play) { if (this == -1) null else this },
+                        danmaku = with(spaceVideoItem.danmaku) { if (this == -1) null else this },
                         time = spaceVideoItem.duration * 1000L
                     )
                 )
