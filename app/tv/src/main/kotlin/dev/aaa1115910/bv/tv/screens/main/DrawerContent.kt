@@ -20,7 +20,6 @@ import androidx.compose.ui.unit.dp
 import androidx.tv.material3.*
 import coil.compose.AsyncImage
 import dev.aaa1115910.bv.component.TopNavItem
-import dev.aaa1115910.bv.component.createCustomInitialFocusRestorerModifiers
 import dev.aaa1115910.bv.ui.theme.BVTheme
 import dev.aaa1115910.bv.util.ifElse
 import dev.aaa1115910.bv.util.isDpadRight
@@ -50,7 +49,7 @@ fun DrawerContent(
 ) {
     var selectedItem by remember { mutableStateOf(DrawerItem.Home) }
     var focusInUser by remember { mutableStateOf(false) }
-    val focusRestorerModifiers = createCustomInitialFocusRestorerModifiers()
+    val centerFocusRequester = remember { FocusRequester() }
     val itemColors = NavigationDrawerItemDefaults.colors()
     val iconColors = IconButtonDefaults.colors(
         containerColor = when {
@@ -138,7 +137,7 @@ fun DrawerContent(
                     .onFocusChanged { if (it.hasFocus) selectedItem = item }
                     .ifElse(
                         item == DrawerItem.Home,
-                        focusRestorerModifiers.childModifier
+                        Modifier.focusRequester(centerFocusRequester)
                     ),
                 colors = iconColors,
                 onClick = {

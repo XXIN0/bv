@@ -4,11 +4,10 @@ import android.content.Context
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -21,37 +20,6 @@ import dev.aaa1115910.bv.util.ifElse
 import dev.aaa1115910.bv.util.isDpadLeft
 import dev.aaa1115910.bv.util.isKeyDown
 
-data class FocusRequesterModifiers(
-    val parentModifier: Modifier,
-    val childModifier: Modifier
-)
-
-@OptIn(ExperimentalComposeUiApi::class)
-@Composable
-fun createCustomInitialFocusRestorerModifiers(): FocusRequesterModifiers {
-    val focusRequester = remember { FocusRequester() }
-    val childFocusRequester = remember { FocusRequester() }
-
-    val parentModifier = Modifier
-        .focusRequester(focusRequester)
-        .focusProperties {
-            exit = {
-                focusRequester.saveFocusedChild()
-                FocusRequester.Default
-            }
-            enter = {
-                if (!focusRequester.restoreFocusedChild())
-                    childFocusRequester
-                else
-                    FocusRequester.Cancel
-            }
-        }
-
-    val childModifier = Modifier.focusRequester(childFocusRequester)
-
-    return FocusRequesterModifiers(parentModifier, childModifier)
-}
-
 @Composable
 fun TopNav(
     modifier: Modifier = Modifier,
@@ -62,7 +30,7 @@ fun TopNav(
     onClick: (TopNavItem) -> Unit = {},
     onLeftKeyEvent: () -> Unit = {}
 ) {
-    val focusRestorerModifiers = createCustomInitialFocusRestorerModifiers()
+    val focusRequester = remember { FocusRequester() }
 
     var selectedNav by remember(initialSelectedItem) {
         mutableStateOf(initialSelectedItem ?: items.first())
@@ -95,7 +63,7 @@ fun TopNav(
     ) {
         TabRow(
             modifier = Modifier
-                .then(focusRestorerModifiers.parentModifier)
+                .focusRestorer(focusRequester)
                 .onPreviewKeyEvent { keyEvent ->
                     // 只有在最左边的选项，按左键时才向外传递事件
                     if (keyEvent.isDpadLeft() && keyEvent.isKeyDown() && selectedTabIndex == 0) {
@@ -110,7 +78,7 @@ fun TopNav(
             items.forEachIndexed { index, tab ->
                 NavItemTab(
                     modifier = Modifier
-                        .ifElse(index == 0, focusRestorerModifiers.childModifier),
+                        .ifElse(index == 0, Modifier.focusRequester(focusRequester)),
                     topNavItem = tab,
                     selected = index == selectedTabIndex,
                     onFocus = {
