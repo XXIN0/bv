@@ -41,7 +41,7 @@ data class VideoPlayerLogsData(
 
 data class VideoPlayerHistoryData(
     val lastPlayed: Int = 0,
-    val showBackToHistory: Boolean = false,
+    val showBackToStart: Boolean = true,
 )
 
 data class VideoPlayerPaymentData(
@@ -59,7 +59,7 @@ data class VideoPlayerStateData(
     val isBuffering: Boolean = false,
     val isError: Boolean = false,
     val exception: Exception? = null,
-    val showBackToHistory: Boolean = false,
+    val showBackToStart: Boolean = false,
 )
 
 data class VideoPlayerConfigData(

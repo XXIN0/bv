@@ -3,17 +3,8 @@ package dev.aaa1115910.bv.player.mobile
 import android.os.CountDownTimer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableLongStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -27,26 +18,7 @@ import dev.aaa1115910.bv.player.AbstractVideoPlayer
 import dev.aaa1115910.bv.player.AkDanmakuPlayer
 import dev.aaa1115910.bv.player.BvVideoPlayer
 import dev.aaa1115910.bv.player.VideoPlayerListener
-import dev.aaa1115910.bv.player.entity.Audio
-import dev.aaa1115910.bv.player.entity.DanmakuType
-import dev.aaa1115910.bv.player.entity.LocalVideoPlayerClockData
-import dev.aaa1115910.bv.player.entity.LocalVideoPlayerConfigData
-import dev.aaa1115910.bv.player.entity.LocalVideoPlayerDanmakuMasksData
-import dev.aaa1115910.bv.player.entity.LocalVideoPlayerDebugInfoData
-import dev.aaa1115910.bv.player.entity.LocalVideoPlayerHistoryData
-import dev.aaa1115910.bv.player.entity.LocalVideoPlayerLoadStateData
-import dev.aaa1115910.bv.player.entity.LocalVideoPlayerLogsData
-import dev.aaa1115910.bv.player.entity.LocalVideoPlayerSeekData
-import dev.aaa1115910.bv.player.entity.LocalVideoPlayerStateData
-import dev.aaa1115910.bv.player.entity.LocalVideoPlayerVideoInfoData
-import dev.aaa1115910.bv.player.entity.Resolution
-import dev.aaa1115910.bv.player.entity.VideoAspectRatio
-import dev.aaa1115910.bv.player.entity.VideoCodec
-import dev.aaa1115910.bv.player.entity.VideoListItem
-import dev.aaa1115910.bv.player.entity.VideoPlayerClockData
-import dev.aaa1115910.bv.player.entity.VideoPlayerDebugInfoData
-import dev.aaa1115910.bv.player.entity.VideoPlayerSeekData
-import dev.aaa1115910.bv.player.entity.VideoPlayerStateData
+import dev.aaa1115910.bv.player.entity.*
 import dev.aaa1115910.bv.player.mobile.controller.BvPlayerController
 import dev.aaa1115910.bv.util.countDownTimer
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -89,7 +61,7 @@ fun BvPlayer(
     val videoPlayerVideoInfoData = LocalVideoPlayerVideoInfoData.current
 
     var showLogs by remember { mutableStateOf(false) }
-    var showBackToHistory by remember { mutableStateOf(false) }
+    var showBackToStart by remember { mutableStateOf(false) }
     var isPlaying by rememberSaveable { mutableStateOf(false) }
     var isError by remember { mutableStateOf(false) }
     var isBuffering by remember { mutableStateOf(false) }
@@ -180,10 +152,10 @@ fun BvPlayer(
         // 此处使用 videoPlayerHistoryData.lastPlayed 无法获取到新值
         //if (videoPlayerHistoryData.lastPlayed > 0 && hideBackToHistoryTimer == null) {
         if (lastPlayed > 0 && hideBackToHistoryTimer == null) {
-            logger.info { "show showBackToHistory: ${videoPlayerHistoryData.lastPlayed}" }
-            showBackToHistory = true
+            logger.info { "show showBackToStart: ${videoPlayerHistoryData.lastPlayed}" }
+            showBackToStart = true
             hideBackToHistoryTimer = countDownTimer(5000, 1000, "hideBackToHistoryTimer") {
-                showBackToHistory = false
+                showBackToStart = false
                 hideBackToHistoryTimer = null
                 //playerViewModel.lastPlayed = 0
                 onClearBackToHistoryData()
@@ -303,7 +275,7 @@ fun BvPlayer(
             isBuffering = isBuffering,
             isError = isError,
             exception = exception,
-            showBackToHistory = showBackToHistory
+            showBackToStart = showBackToStart
         ),
         LocalVideoPlayerDebugInfoData provides VideoPlayerDebugInfoData(
             debugInfo = videoPlayer.debugInfo

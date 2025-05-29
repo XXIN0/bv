@@ -30,7 +30,7 @@ fun BackToHistoryTip(
     SkipTip(
         modifier = modifier,
         show = show,
-        text = "上次看到 $time 点击确认键跳转"
+        text = "跳转到上次播放位置，按确认键从头播放"
     )
 }
 
@@ -109,7 +109,7 @@ fun SkipTips(
             modifier = Modifier
                 .align(Alignment.BottomStart)
                 .padding(bottom = 32.dp),
-            show = videoPlayerStateData.showBackToHistory,
+            show = videoPlayerStateData.showBackToStart,
             time = videoPlayerHistoryData.lastPlayed.toLong().formatMinSec()
         )
     }

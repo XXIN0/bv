@@ -6,24 +6,13 @@ import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.padding
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableLongStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onPreviewKeyEvent
-import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.key.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
@@ -32,16 +21,7 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import dev.aaa1115910.biliapi.entity.video.Subtitle
 import dev.aaa1115910.bv.player.AbstractVideoPlayer
-import dev.aaa1115910.bv.player.entity.Audio
-import dev.aaa1115910.bv.player.entity.DanmakuType
-import dev.aaa1115910.bv.player.entity.LocalVideoPlayerDebugInfoData
-import dev.aaa1115910.bv.player.entity.LocalVideoPlayerHistoryData
-import dev.aaa1115910.bv.player.entity.LocalVideoPlayerSeekData
-import dev.aaa1115910.bv.player.entity.LocalVideoPlayerStateData
-import dev.aaa1115910.bv.player.entity.Resolution
-import dev.aaa1115910.bv.player.entity.VideoAspectRatio
-import dev.aaa1115910.bv.player.entity.VideoCodec
-import dev.aaa1115910.bv.player.entity.VideoListItem
+import dev.aaa1115910.bv.player.entity.*
 import dev.aaa1115910.bv.player.seekbar.SeekMoveState
 import dev.aaa1115910.bv.player.shared.BuildConfig
 import dev.aaa1115910.bv.player.shared.R
@@ -49,6 +29,7 @@ import dev.aaa1115910.bv.util.countDownTimer
 import dev.aaa1115910.bv.util.fInfo
 import dev.aaa1115910.bv.util.toast
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.delay
 
 @Composable
 fun VideoPlayerController(
@@ -60,6 +41,7 @@ fun VideoPlayerController(
     onPause: () -> Unit,
     onExit: () -> Unit,
     onGoTime: (time: Long) -> Unit,
+    onBackToStart: () -> Unit,
     onBackToHistory: () -> Unit,
     onPlayNewVideo: (VideoListItem) -> Unit,
 
@@ -136,6 +118,16 @@ fun VideoPlayerController(
         logger.info { "onTimeBack: [current=${videoPlayer.currentPosition}, goTime=$goTime]" }
     }
 
+    //有历史播放记录时自动跳转播放进度
+    LaunchedEffect(videoPlayerHistoryData.showBackToStart) {
+
+        println("LiChengTest lastPlayed:${videoPlayerHistoryData.lastPlayed}, showBackToStart: ${videoPlayerHistoryData.showBackToStart}")
+        if (videoPlayerHistoryData.showBackToStart) {
+            delay(1000) // 不delay的话  应该播放器还没初始化好所以
+            onBackToHistory()
+        }
+    }
+
     Box(
         modifier = modifier
             .background(Color.Black)
@@ -175,9 +167,11 @@ fun VideoPlayerController(
                 when (it.key) {
                     Key.DirectionCenter, Key.Enter, Key.Spacebar -> {
                         @Suppress("KotlinConstantConditions")
-                        if (!showClickableControllers && videoPlayerStateData.showBackToHistory) {
+                        //自动跳转到上次播放位置后，按键返回到开头
+                        if (!showClickableControllers && videoPlayerStateData.showBackToStart) {
                             if (it.type == KeyEventType.KeyDown) return@onPreviewKeyEvent true
-                            onBackToHistory()
+                            onBackToStart()
+                            // onBackToHistory()
                             return@onPreviewKeyEvent true
                         }
 

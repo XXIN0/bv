@@ -8,18 +8,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableLongStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -39,34 +29,10 @@ import dev.aaa1115910.bv.player.AbstractVideoPlayer
 import dev.aaa1115910.bv.player.AkDanmakuPlayer
 import dev.aaa1115910.bv.player.BvVideoPlayer
 import dev.aaa1115910.bv.player.VideoPlayerListener
-import dev.aaa1115910.bv.player.entity.Audio
-import dev.aaa1115910.bv.player.entity.DanmakuType
-import dev.aaa1115910.bv.player.entity.LocalVideoPlayerClockData
-import dev.aaa1115910.bv.player.entity.LocalVideoPlayerConfigData
-import dev.aaa1115910.bv.player.entity.LocalVideoPlayerDanmakuMasksData
-import dev.aaa1115910.bv.player.entity.LocalVideoPlayerDebugInfoData
-import dev.aaa1115910.bv.player.entity.LocalVideoPlayerHistoryData
-import dev.aaa1115910.bv.player.entity.LocalVideoPlayerLoadStateData
-import dev.aaa1115910.bv.player.entity.LocalVideoPlayerLogsData
-import dev.aaa1115910.bv.player.entity.LocalVideoPlayerSeekData
-import dev.aaa1115910.bv.player.entity.LocalVideoPlayerStateData
-import dev.aaa1115910.bv.player.entity.LocalVideoPlayerVideoInfoData
-import dev.aaa1115910.bv.player.entity.RequestState
-import dev.aaa1115910.bv.player.entity.Resolution
-import dev.aaa1115910.bv.player.entity.VideoAspectRatio
-import dev.aaa1115910.bv.player.entity.VideoCodec
-import dev.aaa1115910.bv.player.entity.VideoListItem
-import dev.aaa1115910.bv.player.entity.VideoPlayerClockData
-import dev.aaa1115910.bv.player.entity.VideoPlayerDebugInfoData
-import dev.aaa1115910.bv.player.entity.VideoPlayerSeekData
-import dev.aaa1115910.bv.player.entity.VideoPlayerStateData
+import dev.aaa1115910.bv.player.entity.*
 import dev.aaa1115910.bv.player.tv.controller.VideoPlayerController
 import dev.aaa1115910.bv.player.util.danmakuMask
-import dev.aaa1115910.bv.util.countDownTimer
-import dev.aaa1115910.bv.util.fInfo
-import dev.aaa1115910.bv.util.formatMinSec
-import dev.aaa1115910.bv.util.ifElse
-import dev.aaa1115910.bv.util.timeTask
+import dev.aaa1115910.bv.util.*
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -116,7 +82,7 @@ fun BvPlayer(
     var mDanmakuPlayer: DanmakuPlayer? by remember { mutableStateOf(null) }
 
     var showLogs by remember { mutableStateOf(false) }
-    var showBackToHistory by remember { mutableStateOf(false) }
+    var showBackToStart by remember { mutableStateOf(false) }
     var isPlaying by rememberSaveable { mutableStateOf(false) }
     var isError by remember { mutableStateOf(false) }
     var isBuffering by remember { mutableStateOf(false) }
@@ -146,7 +112,7 @@ fun BvPlayer(
 
     var hideLogsTimer: CountDownTimer? by remember { mutableStateOf(null) }
     var clockRefreshTimer: CountDownTimer? by remember { mutableStateOf(null) }
-    var hideBackToHistoryTimer: CountDownTimer? by remember { mutableStateOf(null) }
+    var hideBackToStartTimer: CountDownTimer? by remember { mutableStateOf(null) }
 
     var currentDanmakuMaskFrame: DanmakuMaskFrame? by remember { mutableStateOf(null) }
 
@@ -249,12 +215,12 @@ fun BvPlayer(
     val updateBackToHistory: () -> Unit = {
         // 此处使用 videoPlayerHistoryData.lastPlayed 无法获取到新值
         //if (videoPlayerHistoryData.lastPlayed > 0 && hideBackToHistoryTimer == null) {
-        if (lastPlayed > 0 && hideBackToHistoryTimer == null) {
-            logger.info { "show showBackToHistory: ${videoPlayerHistoryData.lastPlayed}" }
-            showBackToHistory = true
-            hideBackToHistoryTimer = countDownTimer(5000, 1000, "hideBackToHistoryTimer") {
-                showBackToHistory = false
-                hideBackToHistoryTimer = null
+        if (lastPlayed > 0 && hideBackToStartTimer == null) {
+            logger.info { "show showBackToStart: ${videoPlayerHistoryData.lastPlayed}" }
+            showBackToStart = true
+            hideBackToStartTimer = countDownTimer(5000, 1000, "hideBackToStartTimer") {
+                showBackToStart = false
+                hideBackToStartTimer = null
                 //playerViewModel.lastPlayed = 0
                 onClearBackToHistoryData()
             }
@@ -441,7 +407,7 @@ fun BvPlayer(
     LaunchedEffect(videoPlayerLogsData.logs) {
         hideLogsTimer?.cancel()
         showLogs = true
-        hideLogsTimer = countDownTimer(3000, 1000, "hideLogsTimer") {
+        hideLogsTimer = countDownTimer(2000, 1000, "hideLogsTimer") {
             showLogs = false
         }
     }
@@ -483,18 +449,18 @@ fun BvPlayer(
             second = clock.third
         ),
         //LocalVideoPlayerHistoryData provides LocalVideoPlayerHistoryData.current.copy(
-        //    showBackToHistory = showBackToHistory
+        //    showBackToStart = showBackToStart
         //),
         //LocalVideoPlayerHistoryData provides VideoPlayerHistoryData(
         //    lastPlayed = videoPlayerHistoryData.lastPlayed,
-        //    showBackToHistory = showBackToHistory
+        //    showBackToStart = showBackToStart
         //),
         LocalVideoPlayerStateData provides VideoPlayerStateData(
             isPlaying = isPlaying,
             isBuffering = isBuffering,
             isError = isError,
             exception = exception,
-            showBackToHistory = showBackToHistory
+            showBackToStart = showBackToStart
         ),
         LocalVideoPlayerDebugInfoData provides VideoPlayerDebugInfoData(
             debugInfo = videoPlayer.debugInfo
@@ -520,6 +486,16 @@ fun BvPlayer(
                 // akdanmaku 会在跳转后立即播放，如果需要缓冲则会导致弹幕不同步
                 mDanmakuPlayer?.pause()
             },
+            onBackToStart = {
+                println("LiChengTest onBackToStart")
+                videoPlayer.seekTo(0)
+                mDanmakuPlayer?.seekTo(0)
+                // akdanmaku 会在跳转后立即播放，如果需要缓冲则会导致弹幕不同步
+                mDanmakuPlayer?.pause()
+                hideBackToStartTimer?.cancel()
+                hideBackToStartTimer = null
+                showBackToStart = false
+            },
             onBackToHistory = {
                 val time = videoPlayerHistoryData.lastPlayed.toLong()
                 logger.fInfo { "Back to history: ${time.formatMinSec()}" }
@@ -529,9 +505,9 @@ fun BvPlayer(
                 mDanmakuPlayer?.pause()
                 //playerViewModel.lastPlayed = 0
                 onClearBackToHistoryData()
-                showBackToHistory = false
-                hideBackToHistoryTimer?.cancel()
-                hideBackToHistoryTimer = null
+                showBackToStart = true
+                // hideBackToHistoryTimer?.cancel()
+                // hideBackToHistoryTimer = null
             },
             onPlayNewVideo = {
                 if (!videoPlayerConfigData.incognitoMode) sendHeartbeat()
