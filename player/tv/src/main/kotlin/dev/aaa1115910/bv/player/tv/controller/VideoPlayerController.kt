@@ -1,6 +1,7 @@
 package dev.aaa1115910.bv.player.tv.controller
 
 import android.os.CountDownTimer
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
@@ -312,9 +313,25 @@ fun VideoPlayerController(
         BottomSubtitle()
         SkipTips()
         PlayStateTips()
+        val context = LocalContext.current
         ControllerVideoInfo(
             show = showInfo,
-            onHideInfo = { showInfo = false }
+            onHideInfo = { showInfo = false },
+            isShowDanmakuLambda = { true },
+            onClickPlay = {
+                if (videoPlayer.isPlaying) onPause() else onPlay()
+            },
+            onClickSupport = {
+                Toast.makeText(context, "点赞投币一键三连正在施工中", Toast.LENGTH_SHORT).show()
+            },
+            onClickDanmaku = {
+
+            },
+            onClickSetting = {
+                showInfo = false
+                showMenuController = true
+                             },
+            onClickBack = onExit
         )
         SeekController(
             show = showSeekController,
