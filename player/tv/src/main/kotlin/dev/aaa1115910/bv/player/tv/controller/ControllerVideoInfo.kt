@@ -46,7 +46,6 @@ fun ControllerVideoInfo(
     val videoPlayerSeekData = LocalVideoPlayerSeekData.current
     val videoPlayerSeekThumbData = LocalVideoPlayerSeekThumbData.current
     val videoPlayerVideoInfoData = LocalVideoPlayerVideoInfoData.current
-    val videoPlayerStateData = LocalVideoPlayerStateData.current
 
     var seekHideTimer: CountDownTimer? by remember { mutableStateOf(null) }
     val setCloseInfoTimer: () -> Unit = {

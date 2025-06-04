@@ -1,16 +1,12 @@
 package dev.aaa1115910.bv.player.tv.controller
 
-import android.os.CountDownTimer
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
@@ -18,16 +14,11 @@ import androidx.compose.ui.input.key.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
-import androidx.compose.ui.unit.dp
-import androidx.tv.material3.MaterialTheme
-import androidx.tv.material3.Text
 import dev.aaa1115910.biliapi.entity.video.Subtitle
 import dev.aaa1115910.bv.player.AbstractVideoPlayer
 import dev.aaa1115910.bv.player.entity.*
 import dev.aaa1115910.bv.player.seekbar.SeekMoveState
-import dev.aaa1115910.bv.player.shared.BuildConfig
 import dev.aaa1115910.bv.player.shared.R
-import dev.aaa1115910.bv.util.countDownTimer
 import dev.aaa1115910.bv.util.fInfo
 import dev.aaa1115910.bv.util.toast
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -88,7 +79,6 @@ fun VideoPlayerController(
     var lastSeekChangeTime by remember { mutableLongStateOf(0L) }
     var moveState by remember { mutableStateOf(SeekMoveState.Idle) }
 
-    var hideVideoInfoTimer: CountDownTimer? by remember { mutableStateOf(null) }
     val controllerInfoFocusRequester = remember { FocusRequester() }
 
     val openSeekController = {
@@ -179,7 +169,6 @@ fun VideoPlayerController(
                             // 返回键收起ControllerVideoInfo
                             showInfo = false
                             infoHasFocus = false
-                            hideVideoInfoTimer?.cancel()
                             onRequestFocus()
                             return@onPreviewKeyEvent true
                         }
@@ -236,24 +225,14 @@ fun VideoPlayerController(
                         if (showInfo && !infoHasFocus) {
                             // Info已显示但没有焦点，将焦点转移到Info
                             infoHasFocus = true
-                            hideVideoInfoTimer?.cancel()
                         } else if (!showInfo) {
                             // Info未显示，显示Info并转移焦点
                             showInfo = true
                             infoHasFocus = true
-                            hideVideoInfoTimer?.cancel()
                         } else {
                             // Info已显示且有焦点，切换显示状态
                             showInfo = !showInfo
                             infoHasFocus = false
-                            if (showInfo) {
-                                hideVideoInfoTimer = countDownTimer(3000, 1000, "hideVideoInfoTimer") {
-                                    showInfo = false
-                                    infoHasFocus = false
-                                }
-                            } else {
-                                hideVideoInfoTimer?.cancel()
-                            }
                         }
                         return@onPreviewKeyEvent true
                     }
@@ -272,7 +251,6 @@ fun VideoPlayerController(
                         if (showInfo) {
                             showInfo = false
                             infoHasFocus = false
-                            hideVideoInfoTimer?.cancel()
                             return@onPreviewKeyEvent true
                         }
                         if (!videoPlayer.isPlaying) {
@@ -346,23 +324,23 @@ fun VideoPlayerController(
             }
     ) {
         content()
-        if (BuildConfig.DEBUG) {
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .padding(8.dp)
-                    .clip(MaterialTheme.shapes.medium)
-                    .background(Color.Black.copy(alpha = 0.3f))
-            ) {
-                Text(
-                    modifier = Modifier.padding(8.dp),
-                    text = videoPlayerDebugInfoData.debugInfo
-                )
-            }
-        }
+        // if (BuildConfig.DEBUG) {
+        //     Box(
+        //         modifier = Modifier
+        //             .align(Alignment.TopStart)
+        //             .padding(8.dp)
+        //             .clip(MaterialTheme.shapes.medium)
+        //             .background(Color.Black.copy(alpha = 0.3f))
+        //     ) {
+        //         Text(
+        //             modifier = Modifier.padding(8.dp),
+        //             text = videoPlayerDebugInfoData.debugInfo
+        //         )
+        //     }
+        // }
         BottomSubtitle()
         SkipTips()
-        PlayStateTips()
+        PlayStateTips(showInfoLambda = { showInfo })
         val context = LocalContext.current
         ControllerVideoInfo(
             show = showInfo,
@@ -370,7 +348,6 @@ fun VideoPlayerController(
             onHideInfo = { 
                 showInfo = false
                 infoHasFocus = false
-                hideVideoInfoTimer?.cancel()
             },
             isPlayingLambda = isPlayingLambda,
             isShowDanmakuLambda = isShowDanmakuLambda,
@@ -385,7 +362,6 @@ fun VideoPlayerController(
                 showInfo = false
                 infoHasFocus = false
                 showMenuController = true
-                hideVideoInfoTimer?.cancel()
                 onRequestFocus()
             },
             onClickBack = onExit

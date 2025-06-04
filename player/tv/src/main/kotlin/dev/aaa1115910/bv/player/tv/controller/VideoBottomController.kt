@@ -53,7 +53,7 @@ fun VideoBottomController(
             ControlItemData(
                 imageVector = { Icons.Outlined.ClearAll },
                 onClick = onClickDanmaku,
-                showSlash = { !isShowDanmakuLambda() }
+                showSlash = { isShowDanmakuLambda() }
             ),
             ControlItemData(
                 imageVector = { Icons.Rounded.ThumbUp },
@@ -143,7 +143,7 @@ private fun ControlItem(
                 onClick()
             },
         colors = SurfaceDefaults.colors(
-            containerColor = if (isSelected) Color.White.copy(0.3f) else Color.Black.copy(0.5f)
+            containerColor = if (isSelected) Color.White.copy(0.5f) else Color.Black.copy(0.5f)
         ),
         shape = MaterialTheme.shapes.medium
     ) {
@@ -153,7 +153,7 @@ private fun ControlItem(
                 .size(40.dp),
             imageVector = imageVector,
             contentDescription = null,
-            tint = if (isSelected) Color.Yellow else Color.White
+            tint = Color.White
         )
         if (showSlash) {
             Canvas(
@@ -163,7 +163,7 @@ private fun ControlItem(
             ) {
                 val gap = 15f
                 drawLine(
-                    color = if (isSelected) Color.Yellow else Color.White,
+                    color = Color.White,
                     start = Offset(gap, gap),
                     end = Offset(size.width - gap, size.height - gap),
                     strokeWidth = 4f,
