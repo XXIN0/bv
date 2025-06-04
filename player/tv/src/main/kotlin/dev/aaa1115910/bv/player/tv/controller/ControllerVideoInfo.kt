@@ -12,6 +12,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -31,7 +32,9 @@ import dev.aaa1115910.bv.player.tv.VideoSeekBar
 fun ControllerVideoInfo(
     modifier: Modifier = Modifier,
     show: Boolean,
+    focusRequester: FocusRequester? = null,
     onHideInfo: () -> Unit,
+    isPlayingLambda: () -> Boolean,
     isShowDanmakuLambda: () -> Boolean,
     onClickPlay: () -> Unit = {},
     onClickSupport: () -> Unit = {},
@@ -99,13 +102,15 @@ fun ControllerVideoInfo(
                 title = videoPlayerVideoInfoData.title,
                 idleIcon = videoPlayerSeekThumbData.idleIcon,
                 movingIcon = videoPlayerSeekThumbData.movingIcon,
-                isPlayingLambda = { videoPlayerStateData.isPlaying },
+                isPlayingLambda = isPlayingLambda,
                 isShowDanmakuLambda = isShowDanmakuLambda,
+                focusRequester = focusRequester,
                 onClickPlay = onClickPlay,
                 onClickSupport = onClickSupport,
                 onClickDanmaku = onClickDanmaku,
                 onClickSetting = onClickSetting,
                 onClickBack = onClickBack,
+                onFocusBack = onHideInfo,
             )
         }
     }
@@ -155,11 +160,13 @@ fun ControllerVideoInfoBottom(
     movingIcon: String,
     isPlayingLambda: () -> Boolean,
     isShowDanmakuLambda: () -> Boolean,
+    focusRequester: FocusRequester?,
     onClickPlay: () -> Unit,
     onClickSupport: () -> Unit,
     onClickDanmaku: () -> Unit,
     onClickSetting: () -> Unit,
     onClickBack: () -> Unit,
+    onFocusBack: () -> Unit,
 ) {
     Column(
         modifier = modifier
@@ -199,11 +206,13 @@ fun ControllerVideoInfoBottom(
             seekDataLambda = seekDataLambda,
             isPlayingLambda = isPlayingLambda,
             isShowDanmakuLambda = isShowDanmakuLambda,
+            focusRequester = focusRequester,
             onClickPlay = onClickPlay,
             onClickSupport = onClickSupport,
             onClickDanmaku = onClickDanmaku,
             onClickSetting = onClickSetting,
             onClickBack = onClickBack,
+            onFocusBack = onFocusBack,
         )
     }
 }
@@ -286,6 +295,7 @@ private fun ControllerVideoInfoPreview() {
                 modifier = Modifier.fillMaxSize(),
                 show = show,
                 onHideInfo = {},
+                isPlayingLambda = { true },
                 isShowDanmakuLambda = { true }
             )
         }

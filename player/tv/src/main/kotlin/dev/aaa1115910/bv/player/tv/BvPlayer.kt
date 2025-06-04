@@ -45,6 +45,7 @@ import kotlin.math.max
 fun BvPlayer(
     modifier: Modifier = Modifier,
     videoPlayer: AbstractVideoPlayer,
+    isShowDanmakuLambda: () -> Boolean,
     danmakuPlayer: DanmakuPlayer?,
     onSendHeartbeat: suspend (Int) -> Unit,
     onClearBackToHistoryData: () -> Unit,
@@ -116,6 +117,8 @@ fun BvPlayer(
     var hideBackToHistoryTimer: CountDownTimer? by remember { mutableStateOf(null) }
 
     var currentDanmakuMaskFrame: DanmakuMaskFrame? by remember { mutableStateOf(null) }
+
+    var isShowDanmaku by rememberSaveable { mutableStateOf(isShowDanmakuLambda()) }
 
     val updateSeek = {
         currentPosition = videoPlayer.currentPosition.coerceAtLeast(0L)
@@ -471,6 +474,8 @@ fun BvPlayer(
             modifier = modifier
                 .focusRequester(focusRequester),
             videoPlayer = videoPlayer,
+            isPlayingLambda = { isPlaying },
+            isShowDanmakuLambda = { isShowDanmaku },
 
             onPlay = { videoPlayer.start() },
             onPause = {
@@ -582,6 +587,7 @@ fun BvPlayer(
             },
             onToggleDanmaku = {
                 logger.info { "On danmaku toggle" }
+                isShowDanmaku = !isShowDanmaku
                 onToggleDanmaku()
             },
             onSubtitleChange = { subtitle ->
@@ -618,7 +624,7 @@ fun BvPlayer(
                 modifier = Modifier
                     .align(Alignment.TopCenter)
                     .fillMaxWidth()
-                    .fillMaxHeight(videoPlayerConfigData.currentDanmakuArea)
+                    .fillMaxHeight(if (isShowDanmaku) videoPlayerConfigData.currentDanmakuArea else 0f)
                     .fillMaxHeight()
                     .alpha(videoPlayerConfigData.currentDanmakuOpacity)
                     .ifElse(
