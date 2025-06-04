@@ -55,6 +55,7 @@ fun VideoPlayerController(
     onDanmakuOpacityChange: (Float) -> Unit,
     onDanmakuAreaChange: (Float) -> Unit,
     onDanmakuMaskChange: (Boolean) -> Unit,
+    onToggleDanmaku: () -> Unit,
     onSubtitleChange: (Subtitle) -> Unit,
     onSubtitleSizeChange: (TextUnit) -> Unit,
     onSubtitleBackgroundOpacityChange: (Float) -> Unit,
@@ -68,6 +69,7 @@ fun VideoPlayerController(
     val videoPlayerHistoryData = LocalVideoPlayerHistoryData.current
     val videoPlayerStateData = LocalVideoPlayerStateData.current
     val videoPlayerDebugInfoData = LocalVideoPlayerDebugInfoData.current
+    val videoPlayerConfigData = LocalVideoPlayerConfigData.current
     val logger = KotlinLogging.logger {}
 
     var showListController by remember { mutableStateOf(false) }
@@ -324,9 +326,7 @@ fun VideoPlayerController(
             onClickSupport = {
                 Toast.makeText(context, "点赞投币一键三连正在施工中", Toast.LENGTH_SHORT).show()
             },
-            onClickDanmaku = {
-
-            },
+            onClickDanmaku = onToggleDanmaku,
             onClickSetting = {
                 showInfo = false
                 showMenuController = true

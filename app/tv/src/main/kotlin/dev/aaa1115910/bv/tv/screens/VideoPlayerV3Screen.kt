@@ -186,6 +186,23 @@ fun VideoPlayerV3Screen(
                 Prefs.defaultDanmakuMask = mask
                 playerViewModel.currentDanmakuMask = mask
             },
+            onToggleDanmaku = {
+                val newEnabled = !playerViewModel.currentDanmakuEnabled
+                playerViewModel.currentDanmakuEnabled = newEnabled
+                Prefs.defaultDanmakuEnabled = newEnabled
+                
+                if (newEnabled) {
+                    // 启用弹幕时，恢复所有弹幕类型
+                    val allDanmakuTypes = DanmakuType.entries
+                    playerViewModel.currentDanmakuTypes.swapList(allDanmakuTypes)
+                    Prefs.defaultDanmakuTypes = allDanmakuTypes
+                } else {
+                    // 禁用弹幕时，清空弹幕类型列表
+                    playerViewModel.currentDanmakuTypes.clear()
+                }
+                
+                logger.info { "Toggle danmaku: $newEnabled, types: ${playerViewModel.currentDanmakuTypes}" }
+            },
             onSubtitleChange = { subtitle ->
                 playerViewModel.loadSubtitle(subtitle.id)
             },
